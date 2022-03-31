@@ -23,10 +23,8 @@ export default function LoginScreen({ navigation }) {
       setPassword({ ...password, error: passwordError })
       return
     }
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Dashboard' }],
-    })
+    navigation.navigate('HomeScreen')
+ 
   }
 
   return (
