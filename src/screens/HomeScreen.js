@@ -1,22 +1,55 @@
-import React from 'react'
+
+import React, { useState } from "react";
 import Background from '../components/Background'
 import Logo from '../components/Logo'
-import { StyleSheet, Text,ImageBackground,Image , View,SafeAreaView,TouchableOpacity, KeyboardAvoidingView,Platform,StatusBar, Button } from 'react-native';
+import { StyleSheet, Text, Modal ,TouchableWithoutFeedback,Image ,Pressable, View,SafeAreaView,TouchableOpacity, KeyboardAvoidingView,Platform,StatusBar, Button } from 'react-native';
 import BackButton from '../components/BackButton'
+
 export default function HomeScreen({ navigation }) {
+  const [modalVisible, setModalVisible] = useState(false);
   return (
        
     <Background >
        <BackButton goBack={navigation.goBack} />
-       
-        <Image source={require('../assets/profile.png')} style = {styles.profileIcon}/>
+     {/* hidden screen when you click in profile icon */} 
+         <Modal 
+         transparent = {true}
+         visible = {modalVisible}
+         onRequestClose={() => {
+          
+          setModalVisible(!modalVisible);
+        }}
+         >
+         <View style = {styles.HeddinScreeen}>
+         <Pressable onPress={() => setModalVisible(!modalVisible)} style = {styles.ProfileScreen}>
+         <View style={styles.header}>
+            <View style={styles.headerContent}>
+               <Image style={styles.avatar} source={require('../assets/avatar.png')}/>
+              
+                <Text style={styles.name}> add name here </Text>
+                
+            </View>
+        
+          </View>
+          <View style = {styles.DetailsContainer}> 
+          <Text style = { styles.ProfileDetails}> ת.ז:  </Text>
+          <Text style = { styles.ProfileDetails}> דואר אלקטרוני:  </Text>
+          <Text style = { styles.ProfileDetails}> תאריך לידה:   </Text>
+          </View>
+         </Pressable>
+         </View>
+         </Modal>
+         <TouchableOpacity style = {styles.profileIconContainer}  onPress={() => setModalVisible(true)}>
+       <Image  source={require('../assets/profile.png')}  style = {styles.profileIcon}/>
+       </TouchableOpacity>
       <View style={styles.buttonContainer}>
       <SafeAreaView style={styles.LogoTextContainer}> 
       
-      <Text style={styles.Text}>ניצול מזון : 79879</Text> {/*add number here from database*/}
+      <Text style={styles.Text}>ניצול מזון : 79879</Text> 
       
         <Logo /> 
       </SafeAreaView>
+       {/* all the button  */} 
      <TouchableOpacity  onPress={ () => navigation.navigate('ManageGoods')} style={styles.appButtonContainer}>
     <Text style={styles.appButtonText}>ניהול סחורות</Text>
   </TouchableOpacity>
@@ -26,24 +59,69 @@ export default function HomeScreen({ navigation }) {
   <TouchableOpacity  onPress={() =>navigation.navigate('SeeStatistics')} style={styles.appButtonContainer}>
     <Text style={styles.appButtonText}>צפו בסטטיסטיקה</Text>
   </TouchableOpacity>
-  <TouchableOpacity  onPress={() =>navigation.navigate('AddVolunteer')} style={styles.appButtonContainer}>
-    <Text  style={styles.appButtonText}> הוספת מתנדב</Text>
+  <TouchableOpacity  onPress={() =>navigation.navigate('ManageVolunteers')} style={styles.appButtonContainer}>
+    <Text  style={styles.appButtonText}>ניהול מתנדבים</Text>
    
   </TouchableOpacity>
     </View>
     </Background>
   )
 }
+
 const styles = StyleSheet.create({
-  
-  ScreenContainer: {
-    flex: 1,
-    padding: 20,
-    width: '100%',
-    maxWidth: 340,
-    justifyContent: 'center',
-    backgroundColor: "blue",
+  profileIconContainer : {
+    position: 'absolute',
+    top: 60,
+    right: 4,
+    width: 50 , 
+    height: 50,
    
+  },
+  profileIcon : {
+  
+    width: 50 , 
+    height: 50
+  },
+  HeddinScreeen : {
+  flex : 1,
+  backgroundColor: '#000000aa',
+  },
+  ProfileScreen : {
+    flex : 1,
+    backgroundColor: '#ffffff',
+    margin : 40,
+    padding : 10,
+    borderRadius : 10,
+  },
+  header:{
+    backgroundColor: "#1c6669",
+    borderRadius : 10,
+  },
+  headerContent:{
+    padding:30,
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 130,
+    height: 130,
+    borderRadius: 63,
+    borderWidth: 4,
+    borderColor: "white",
+    marginBottom:10,
+  },
+  name:{
+    fontSize:22,
+    color:"#FFFFFF",
+    fontWeight:'600',
+  },
+  DetailsContainer : {
+  flex : 1,
+  justifyContent: 'space-evenly'
+  },
+  ProfileDetails : {
+    fontSize: 20,
+    fontWeight: "bold",
+    
   },
   buttonContainer: {
     flex: 1,
@@ -82,12 +160,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'column',
   },
-  profileIcon : {
-    position: 'absolute',
-    top: 65,
-    right: 4,
-    width: 50 , 
-    height: 50
-  }
+ 
   
 });
