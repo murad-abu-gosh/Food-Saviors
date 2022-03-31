@@ -10,7 +10,7 @@ import {
   RegisterScreen,
   ResetPasswordScreen,
   HomeScreen,
-  AddVolunteer,
+  ManageVolunteers,
   ManageGoods,
   ManageItems,
   SeeStatistics
@@ -33,7 +33,7 @@ export default function App() {
           <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
           <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen name="ManageGoods" component={ManageGoods} />
-          <Stack.Screen name="AddVolunteer" component={AddVolunteer} />
+          <Stack.Screen name="ManageVolunteers" component={ManageVolunteers} />
           <Stack.Screen name="ManageItems" component={ManageItems} />
           <Stack.Screen name="SeeStatistics" component={SeeStatistics} />
 
