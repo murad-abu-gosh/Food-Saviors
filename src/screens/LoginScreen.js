@@ -23,10 +23,8 @@ export default function LoginScreen({ navigation }) {
       setPassword({ ...password, error: passwordError })
       return
     }
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Dashboard' }],
-    })
+    navigation.navigate('HomeScreen')
+ 
   }
 
   return (
@@ -66,7 +64,7 @@ export default function LoginScreen({ navigation }) {
         Login
       </Button>
       <View style={styles.row}>
-        <Text>Don’t have an account? </Text>
+        <Text>Don't have an account? </Text>
         <TouchableOpacity onPress={() => navigation.replace('RegisterScreen')}>
           <Text style={styles.link}>Sign up</Text>
         </TouchableOpacity>
