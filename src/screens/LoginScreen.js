@@ -11,7 +11,7 @@ import { theme } from "../core/theme";
 import { emailValidator } from "../helpers/emailValidator";
 import { passwordValidator } from "../helpers/passwordValidator";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../config";
+import { auth, Colors } from "../config";
 
 
 export default function LoginScreen({ navigation }) {
@@ -65,7 +65,7 @@ export default function LoginScreen({ navigation }) {
           <Text style={styles.forgot}>Forgot your password?</Text>
         </TouchableOpacity>
       </View>
-      <Button mode="contained" onPress={onLoginPressed}>
+      <Button style={styles.button} mode="contained" onPress={onLoginPressed}>
         Login
       </Button>
       <View style={styles.row}>
@@ -83,6 +83,9 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "flex-end",
     marginBottom: 24
+  },
+  button: {
+    backgroundColor: Colors.primary
   },
   row: {
     flexDirection: "row",
