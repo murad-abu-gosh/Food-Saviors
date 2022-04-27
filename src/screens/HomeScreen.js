@@ -46,7 +46,14 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.ProfileDetails}> דואר אלקטרוני: </Text>
               <Text style={styles.ProfileDetails}> תאריך לידה: </Text>
             </View>
+            <TouchableOpacity
+              onPress={() => auth.signOut()}
+              style={styles.logOutButtonContainer}
+            >
+              <Text style={styles.appButtonText}>התנתק</Text>
+            </TouchableOpacity>
           </Pressable>
+
         </View>
       </Modal>
       <TouchableOpacity
@@ -88,12 +95,6 @@ export default function HomeScreen({ navigation }) {
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>ניהול מתנדבים</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => auth.signOut()}
-          style={styles.appButtonContainer}
-        >
-          <Text style={styles.appButtonText}>Sign Out</Text>
         </TouchableOpacity>
       </View>
     </Background>
@@ -160,12 +161,13 @@ const styles = StyleSheet.create({
     borderRadius: 100
   },
   appButtonContainer: {
+    alignSelf: "center",
     elevation: 8,
     backgroundColor: "#1c6669",
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    width: 200,
+    width: 200
   },
   appButtonText: {
     fontSize: 18,
@@ -185,5 +187,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "column"
+  },
+  logOutButtonContainer: {
+    alignSelf: "center",
+    elevation: 8,
+    backgroundColor: "red",
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    width: 200
   }
 });
