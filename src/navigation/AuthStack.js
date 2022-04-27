@@ -2,9 +2,9 @@ import * as React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 
 import {
+  ForgotPasswordScreen,
   LoginScreen,
   RegisterScreen,
-  ResetPasswordScreen,
   StartScreen
 } from "../screens";
 
@@ -19,7 +19,7 @@ export const AuthStack = () => {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={RegisterScreen} />
       <Stack.Screen name="Start" component={StartScreen} />
-      <Stack.Screen name="ForgotPassword" component={ResetPasswordScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     </Stack.Navigator>
   );
 };

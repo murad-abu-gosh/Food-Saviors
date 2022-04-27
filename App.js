@@ -30,7 +30,7 @@ export default function App() {
   //         <Stack.Screen name="ManageItems" component={ManageItems} />
   //         <Stack.Screen name="SeeStatistics" component={SeeStatistics} />
   //
-  //         <Stack.Screen name="ResetPasswordScreen" component={ResetPasswordScreen} />
+  //         <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} />
   //       </Stack.Navigator>
   //     </NavigationContainer>
   //   </Provider>
