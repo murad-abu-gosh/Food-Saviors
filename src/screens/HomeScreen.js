@@ -72,30 +72,51 @@ export default function HomeScreen({ navigation }) {
           <Logo />
         </SafeAreaView>
         {/* all the button  */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={() => navigation.navigate("ManageGoods")}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>ניהול סחורות</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity
           onPress={() => navigation.navigate("ManageItems")}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>ניהול פריטים</Text>
         </TouchableOpacity>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={() => navigation.navigate("SeeStatistics")}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>צפו בסטטיסטיקה</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity
           onPress={() => navigation.navigate("ManageVolunteers")}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>ניהול מתנדבים</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate("ManageDropArea")}
+          style={styles.appButtonContainer}
+        >
+          <Text style={styles.appButtonText}>ניהול נקודות פיזור</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Feedback")}
+          style={styles.appButtonContainer}
+        >
+          <Text style={styles.appButtonText}>משובים</Text>
+        </TouchableOpacity>
+
+        {/* <TouchableOpacity
+          onPress={() => navigation.navigate("TestScreen")}
+          style={styles.appButtonContainer}
+        >
+          <Text style={styles.appButtonText}>Test</Text>
+        </TouchableOpacity> */}
       </View>
     </Background>
   );
