@@ -37,7 +37,7 @@ function checkForId(item, itemName) {
 
 export async function getIdByName(collectionName, itemName) {
   itemsRef = await getDocs(collection(db, collectionName));
-  for (const item in itemsRef) {
+  for (const item in itemsRef) {  
     if (item.data()["name"] == itemName) return item.id;
   }
 }
