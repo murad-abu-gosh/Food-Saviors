@@ -11,6 +11,7 @@ export default function TextInput({ errorText, description, ...props }) {
         selectionColor={theme.colors.primary}
         underlineColor="transparent"
         mode="outlined"
+        borderColor = {theme.colors.primary}
         {...props}
       />
       {description && !errorText ? (

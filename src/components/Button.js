@@ -5,15 +5,15 @@ import { theme } from '../core/theme'
 
 export default function Button({ mode, style, ...props }) {
   return (
-    <PaperButton
-      style={[
-        styles.button,
+     <PaperButton
+       style={[
+         styles.button,
         mode === 'outlined' && { backgroundColor: theme.colors.surface },
-        style,
-      ]}
-      labelStyle={styles.text}
-      mode={mode}
-      {...props}
+         style,
+       ]}
+       labelStyle={styles.text}
+        mode={mode}
+       {...props}
     />
   )
 }
