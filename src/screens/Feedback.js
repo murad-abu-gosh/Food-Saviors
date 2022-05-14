@@ -11,7 +11,7 @@ import { fetchAllDocuments, fetchDocumentById } from "../config/database_interfa
 
 export default function Feedback({ navigation, route}) {
 
-  let [feedbacksInfo, setFeedbacksInfo] = useState([{
+  let [feedbacksInfo, setFeedbacksInfo] = useState([{ 
     userID: "12345425",
     title: "אוכל לא טריא",
     date: "14-5-2022",

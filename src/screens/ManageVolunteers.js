@@ -93,7 +93,7 @@ export default function ManageVolunteers({ navigation, route }) {
 
 
 
-      <View style={styles.volunteerInfoContainer}>
+      <View style={styles.volunteerInfoContainer}> 
 
         <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>שם: </Text>{item.name}</Text>
         <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>ת.ז: </Text>{item.personalID}</Text>

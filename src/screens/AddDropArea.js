@@ -47,7 +47,7 @@ export default function AddDropArea({ navigation, route }) {
 
             updateDocumentById("dropAreas", dropAreaID, {"name": dropAreaName, "address": dropAreaAddress}).then(() => {
 
-                navigation.navigate({ name: 'ManageDropArea' });
+                navigation.navigate({ name: 'ManageDropArea' }); 
             });
         } else {
 

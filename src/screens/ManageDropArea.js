@@ -64,7 +64,7 @@ export default function ManageDropArea({ navigation, route }) {
   }
 
   return (
-
+ 
     <Background styleEdit={styles.backgroundEdit}>
 
       <BackButton goBack={navigation.goBack} />

@@ -56,7 +56,7 @@ export default function AddVolunteer({ navigation, route }) {
         if(isForEdit){
 
             let updatedUserJSON = {
-                "name": volunteerFullName,
+                "name": volunteerFullName, 
                 "email" : volunteerEmail,
                 "personalID" : volunteerPersonalID,
                 "image": volunteerImageUri,

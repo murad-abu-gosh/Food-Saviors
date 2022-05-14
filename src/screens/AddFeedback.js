@@ -12,7 +12,7 @@ import { theme } from "../core/theme";
 
 
 export default function AddFeedback({ navigation, route }) {
-
+ 
     const [userID, setUserID] =  useState(auth.currentUser.uid);
     const [feedbackID, setID] = useState();
     const [feedbackTitle, setTitle] = useState();   
