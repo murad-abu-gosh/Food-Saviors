@@ -28,7 +28,7 @@ export default function Items({ Name, image }) {
       {/* <Button title="Pick an image from camera roll" onPress={pickImage} /> */}
 
       {image && <Image source={{ uri: image }} style={styles.Image} />}
-      <Text>{Name}</Text>
+      <Text style={styles.NameText}>{Name}</Text>
 
 
     </View>
@@ -38,17 +38,30 @@ export default function Items({ Name, image }) {
 const styles = StyleSheet.create({
   ItemsContainer: {
 
-    width: 150,
-    height: 150,
-
-    alignItems: "center"
-
+    //  width: "90%",
+     height: 180,
+    // height: "28%",
+   margin : 5,
+    alignItems: "center",
+   backgroundColor : 'white',
+   borderWidth: 3,
+   borderRadius: 10,
+   borderColor: "#1c6669",
+  // marginTop : "15%",
+  // marginLeft : "5%"
+  
 
   },
+  NameText : {
+   fontSize : 20,
+  
+  },
   Image: {
-    width: 150,
-    height: 150,
-    borderWidth: 5,
+    width: 130,
+    height: 130,
+    
+    margin : 7,
+    borderWidth: 2,
     borderRadius: 10,
     borderColor: "#1c6669"
   },

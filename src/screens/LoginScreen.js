@@ -36,7 +36,7 @@ export default function LoginScreen({ navigation }) {
     <Background>
       <BackButton goBack={navigation.goBack} />
       <Logo />
-      <Header>Welcome back</Header>
+      <Header>מצילת מזון</Header>
       <TextInput
         label="Email"
         returnKeyType="next"
@@ -62,18 +62,18 @@ export default function LoginScreen({ navigation }) {
         <TouchableOpacity
           onPress={() => navigation.navigate("ForgotPassword")}
         >
-          <Text style={styles.forgot}>Forgot your password?</Text>
+          <Text style={styles.forgot}>שכחת ססמתך?</Text>
         </TouchableOpacity>
       </View>
       <Button style={styles.button} mode="contained" onPress={onLoginPressed}>
         Login
       </Button>
-      <View style={styles.row}>
+      {/* <View style={styles.row}>
         <Text>Don't have an account? </Text>
         <TouchableOpacity onPress={() => navigation.replace("RegisterScreen")}>
           <Text style={styles.link}>Sign up</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
     </Background>
   );
 }
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     marginBottom: 24
   },
   button: {
-    backgroundColor: Colors.primary
+    backgroundColor: theme.colors.primary
   },
   row: {
     flexDirection: "row",
