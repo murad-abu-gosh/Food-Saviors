@@ -9,6 +9,7 @@ export default function BackButton({ goBack }) {
         style={styles.image}
         source={require('../assets/arrow_back.png')}
       />
+      
     </TouchableOpacity>
   )
 }
@@ -18,6 +19,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10 + getStatusBarHeight(),
     left: 4,
+    zIndex: 1,
+    elevation: 1
   },
   image: {
     width: 24,
