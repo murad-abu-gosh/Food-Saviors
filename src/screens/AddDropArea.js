@@ -4,6 +4,7 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import BackButton from "../components/BackButton";
 import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
+import { addNewDropArea, deleteDocumentById, updateDocumentById } from "../config/database_interface";
 import { theme } from "../core/theme";
 
 
@@ -21,20 +22,20 @@ export default function AddDropArea({ navigation, route }) {
 
         if (route.params?.tempDropAreaInfo) {
 
+            
+
             let currDropAreaInfo = route.params?.tempDropAreaInfo;
 
-            setID(currDropAreaInfo.dropAreaID);
-            setName(currDropAreaInfo.dropAreaName);
-            setAddress(currDropAreaInfo.dropAreaAddress);
+            
+
+            setID(currDropAreaInfo.id);
+            setName(currDropAreaInfo.name);
+            setAddress(currDropAreaInfo.address);
         }
 
         setIsForEdit(route.params?.isForEdit);
 
-        if (isForEdit === false) {
-           
-            setID((parseInt((Math.random() * Math.pow(10, 9)), 10)).toString())
 
-        }
     }, [route.params?.tempDropAreaInfo]);
     
 
@@ -42,15 +43,21 @@ export default function AddDropArea({ navigation, route }) {
 
     const onSaveButtonPressed = () => {
 
-        let dropAreaInfo = { dropAreaID: dropAreaID, dropAreaName: dropAreaName, dropAreaAddress: dropAreaAddress };
+        if(isForEdit){
 
-        navigation.navigate({ name: 'ManageDropArea', params: { tempDropAreaInfo: dropAreaInfo, isForEdit: isForEdit}, merge: true });
+            updateDocumentById("dropAreas", dropAreaID, {"name": dropAreaName, "address": dropAreaAddress});
+        } else {
 
+            addNewDropArea(dropAreaName, dropAreaAddress);
+        }
+
+        navigation.navigate({ name: 'ManageDropArea' });
     };
 
     const onDeleteButtonPressed = () => {
-
-
+        
+        deleteDocumentById("dropAreas", dropAreaID);
+        navigation.navigate({ name: 'ManageDropArea' });
     }
 
     const isValidInfo = () => {
@@ -85,7 +92,7 @@ export default function AddDropArea({ navigation, route }) {
 
             <TouchableOpacity style={styles.saveButtonStyle} onPress={onSaveButtonPressed}><Text style={styles.saveButtonTextStyle}>שמור</Text></TouchableOpacity>
 
-            <TouchableOpacity style={[styles.deleteButtonStyle, { display: isForEdit ? "flex" : "none" }]}><Text style={styles.deleteButtonTextStyle}>הוסיר</Text></TouchableOpacity>
+            <TouchableOpacity style={[styles.deleteButtonStyle, { display: isForEdit ? "flex" : "none" }]} onPress={onDeleteButtonPressed}><Text style={styles.deleteButtonTextStyle}>הוסיר</Text></TouchableOpacity>
 
         </ImageBackground>
 

@@ -8,25 +8,28 @@ import BackButton from "../components/BackButton";
 import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
 import { theme } from "../core/theme";
 import * as ImagePicker from "expo-image-picker";
+import { createNewUser } from "../config/database_interface";
 
 
 
 export default function AddVolunteer({ navigation, route }) {
 
+    const [volunterID, setID] = useState();
+    const [volunteerPersonalID, setPersonalID] = useState();
     const [volunteerImageUri, setImage] = useState(Image.resolveAssetSource(require("../assets/addImagePic2.png")).uri);
     const [volunteerFullName, setFullName] = useState();
     const [volunteerEmail, setEmail] = useState();
-    const [volunteerID, setID] = useState();
     const [volunteerPhoneNumber, setPhoneNumber] = useState();
     const [volunteerPassword, setPassword] = useState();
-    const [volunteerType, setType] = useState();
+    // const [passwordFieldDisplay, setPasswordDisplay] = useState("flex");
+    const [volunteerRank, setRank] = useState();
     const [volunteerBirthdayDate, setDate] = useState()
 
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState(null);
     const [items, setItems] = useState([
-        { label: 'מתנדב', value: 'volunteer' },
-        { label: 'אדמין', value: 'admin' }
+        { label: 'מתנדב', value: 1 },
+        { label: 'אדמין', value: 2 }
     ]);
 
     const [dropDownPlaceholder, setDropDownPlaceholder] = useState("סוג משתמש" );
@@ -49,16 +52,40 @@ export default function AddVolunteer({ navigation, route }) {
 
     const onSaveButtonPressed = () => {
 
-        let volunteerInfo = {volunteerFullName: volunteerFullName, volunteerID: volunteerID, volunteerEmail: volunteerEmail, volunteerPhoneNumber: volunteerPhoneNumber, volunteerBirthdayDate: volunteerBirthdayDate, volunteerType: volunteerType, volunteerImageUri: volunteerImageUri};
+        if(isForEdit){
 
-        console.log(volunteerInfo);
+            let newUserJSON = {
+                "name": volunteerFullName,
+                "email" : volunteerEmail,
+                "personalID" : volunteerPersonalID,
+                "image": volunteerImageUri,
+                "phoneNumber" : volunteerPhoneNumber,
+                "birthDate" : volunteerBirthdayDate,
+                "rank" : volunteerRank
+              };
 
-        navigation.navigate({name: 'ManageVolunteers', params: {tempVolunteerInfo: volunteerInfo, isForEdit: isForEdit}, merge: true});
+              
+
+            updateDocumentById("users", volunterID, newUserJSON);
+        } else {
+
+            setPassword("1234oooooooooooooo");
+            setPersonalID("999999");
+
+            console.log(volunteerEmail+ " " + "1234oooooooooooooo" + " " + volunteerFullName + " " + volunteerPersonalID + " " +  volunteerPhoneNumber+ " " + volunteerImageUri+ " " + volunteerBirthdayDate+ " " + volunteerRank);
+
+            createNewUser(volunteerEmail, "1234oooooooooooooo", volunteerFullName, "1234oooooooooooooo",  volunteerPhoneNumber, volunteerImageUri, volunteerBirthdayDate, volunteerRank);
+        }
+
+        navigation.navigate({ name: 'ManageVolunteers' });
+
+        navigation.navigate({name: 'ManageVolunteers', merge: true});
 
     };
 
     const onDeleteButtonPressed = () => {
-
+        /// T-Shirt
+        
 
     }
 
@@ -75,11 +102,11 @@ export default function AddVolunteer({ navigation, route }) {
           
           setImage(currVolunterInfo.volunteerImageUri);
           setFullName(currVolunterInfo.volunteerFullName);
-          setID(currVolunterInfo.volunteerID);
+          setPersonalID(currVolunterInfo.volunteerID);
           setDate(currVolunterInfo.volunteerBirthdayDate);
           setPhoneNumber(currVolunterInfo.volunteerPhoneNumber);
           setEmail(currVolunterInfo.volunteerEmail);
-          setType(currVolunterInfo.volunteerType);
+          setRank(currVolunterInfo.volunteerType);
           setValue(currVolunterInfo.volunteerType);
           setDropDownPlaceholder(currVolunterInfo.volunteerType);
         }
@@ -111,11 +138,11 @@ export default function AddVolunteer({ navigation, route }) {
 
                     <TextInput style={styles.infoTextInputStyle} value={volunteerEmail} onChangeText={(value) => setEmail(value)} placeholder="דואר אלקטרוני" keyboardType="email-address"></TextInput>
 
-                    <TextInput style={styles.infoTextInputStyle} value={volunteerID} onChangeText={(value) => setID(value)} placeholder="ת.ז" keyboardType="number-pad"></TextInput>
+                    <TextInput style={styles.infoTextInputStyle} value={volunteerPersonalID} onChangeText={(value) => setID(value)} placeholder="ת.ז" keyboardType="number-pad"></TextInput>
 
                     <TextInput style={styles.infoTextInputStyle} value={volunteerPhoneNumber} onChangeText={(value) => setPhoneNumber(value)} placeholder="מספר טלפון" keyboardType="phone-pad"></TextInput>
 
-                    <TextInput style={styles.infoTextInputStyle} onChangeText={(value) => setPassword(value)} placeholder="סיסמה" keyboardType="name-phone-pad" secureTextEntry={true}></TextInput>
+                    <TextInput style={[styles.infoTextInputStyle, {display: isForEdit? "flex" : "none"}]} onChangeText={(value) => setPassword(value)} placeholder="סיסמה" keyboardType="name-phone-pad" secureTextEntry={true}></TextInput>
 
                     <DatePicker
                         style={styles.datePickerStyle}
@@ -171,7 +198,7 @@ export default function AddVolunteer({ navigation, route }) {
                 setValue={setValue}
                 setItems={setItems}
                 onChangeValue={(value) => {
-                    setType(value);
+                    setRank(value);
                     setValue(value);
                 }}
             />

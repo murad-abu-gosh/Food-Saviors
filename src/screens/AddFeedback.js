@@ -4,12 +4,15 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import BackButton from "../components/BackButton";
 import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
+import { auth } from "../config";
 import { theme } from "../core/theme";
 
 
 
 
 export default function AddFeedback({ navigation, route }) {
+
+    const userID =  auth.currentUser.uid;
 
     const [feedbackID, setID] = useState();
     const [feedbackTitle, setTitle] = useState();
@@ -32,7 +35,7 @@ export default function AddFeedback({ navigation, route }) {
 
             today = dd + '-' + mm + '-' + yyyy;
 
-            setID(currFeedbackInfo.feedbackID);
+           
             setTitle(currFeedbackInfo.feedbackTitle);
             setDate(today);
             setUserInfo("אבו גמל מעאד")

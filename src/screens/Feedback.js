@@ -11,28 +11,28 @@ import { useIsFocused } from "@react-navigation/native";
 
 export default function Feedback({ navigation, route}) {
 
-  let [feedbacksInfo, setFeedbacksInfo] = useState([{feedbackID: "123456789", feedbackTitle: "חנות סאמר", feedbackDate: "15-4-2020", feedbackUserInfo: "Muath Abu Jamal", feedbackContent: "Today we are visiting to discuss the Top 5 best text editors for web development in 2022. These text editors have plenty of features and might increase your productivity."}])
+  let [feedbacksInfo, setFeedbacksInfo] = useState([]);
+
+  const fetchAllFeedbacksDocuments = async () => {
+
+    setFeedbacksInfo([]);
+
+    const feedbacksList = await fetchAllDocuments("feedbacks");
+
+    console.log(feedbacksList);
+
+    setDropAreasInfo(feedbacksInfo => [...feedbacksList]);
+  };
 
   React.useEffect(() => {
-    if (route.params?.tempFeedbackInfo) {
-      
-      let newFeedbackInfo = route.params?.tempFeedbackInfo;
+    fetchAllFeedbacksDocuments();
+    const willFocusSubscription = navigation.addListener('focus', () => {
+      fetchAllFeedbacksDocuments();
+    });
 
-      if(route.params?.isForEdit === true){
+    return willFocusSubscription;
+  }, []);
 
-        feedbacksInfo[getFeedbackItemIndex(newFeedbackInfo.feedbackID)] = newFeedbackInfo;
-
-        setFeedbacksInfo(feedbacksInfo);
-
-      } else {
-
-        const newFeedbackList = [...feedbacksInfo, newFeedbackInfo];
-        
-        setFeedbacksInfo(newFeedbackList);
-      }
-      
-    }
-  }, [route.params?.tempFeedbackInfo]);
 
   const getFeedbackItemIndex = (feedbackID) => {
 
@@ -142,13 +142,14 @@ const styles = StyleSheet.create({
 
 feedbackHeaderInfoContainer: {
     alignItems: "center",
-    width: "103%",
+    width: "90%",
     paddingTop: 5,
     paddingBottom: 10,
     paddingLeft: 10,
     paddingRight: 10,
     borderBottomWidth: 3,
-    borderBottomColor:  "#1c6669"
+    borderBottomColor:  "#1c6669",
+    // borderStyle: 'dotted'
 },
 
 feedbackContentContainer: {

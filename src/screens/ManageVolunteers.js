@@ -7,6 +7,7 @@ import BackButton from "../components/BackButton";
 import { FlatList, TouchableOpacity } from "react-native-gesture-handler";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { setStatusBarStyle } from "expo-status-bar";
+import { fetchAllDocuments } from "../config/database_interface";
 
 
 export default function ManageVolunteers({ navigation, route }) {
@@ -15,21 +16,42 @@ export default function ManageVolunteers({ navigation, route }) {
 
   let [volunteeresInfo, setVolunteeresInfo] = useState([{volunteerFullName: "אבו גמל מעאד", volunteerID: "207535311", volunteerEmail: "Muathsoftware@gmail.com", volunteerPhoneNumber: "0585333193", volunteerBirthdayDate: "3/4/2000", volunteerType: "מתנדב", volunteerImageUri: Image.resolveAssetSource(require("../assets/avatar.png")).uri }])
 
+  const fetchAllVolunteersDocuments = async () => {
+
+    setVolunteeresInfo([]);
+
+    const volunteersList = await fetchAllDocuments("users");
+
+    console.log(volunteersList);
+
+    setVolunteeresInfo(() => [...volunteersList]);
+  };
+
   React.useEffect(() => {
-    if (route.params?.tempVolunteerInfo) {
+    fetchAllVolunteersDocuments();
+    const willFocusSubscription = navigation.addListener('focus', () => {
+      fetchAllVolunteersDocuments();
+    });
+
+    return willFocusSubscription;
+  }, []);
+
+
+  // React.useEffect(() => {
+  //   if (route.params?.tempVolunteerInfo) {
       
-      let newVolunteerInfo = route.params?.tempVolunteerInfo;
+  //     let newVolunteerInfo = route.params?.tempVolunteerInfo;
 
-      if(route.params?.isForEdit){
+  //     if(route.params?.isForEdit){
 
-        volunteeresInfo[getVolunteerItemIndex(newVolunteerInfo.volunteerID)] = newVolunteerInfo;
+  //       volunteeresInfo[getVolunteerItemIndex(newVolunteerInfo.volunteerID)] = newVolunteerInfo;
 
-      } else {
-        setVolunteeresInfo([...volunteeresInfo, newVolunteerInfo]);
-      }
+  //     } else {
+  //       setVolunteeresInfo([...volunteeresInfo, newVolunteerInfo]);
+  //     }
       
-    }
-  }, [route.params?.tempVolunteerInfo]);
+  //   }
+  // }, [route.params?.tempVolunteerInfo]);
 
   const getVolunteerItemIndex = (volunterID) => {
 
@@ -43,23 +65,42 @@ export default function ManageVolunteers({ navigation, route }) {
     return -1;
   }
 
+  const getUserRankString = (userRank) => {
+
+    switch(userRank){
+
+      case 0:
+        return "Head Admin";
+
+      case 1:
+        return "Admin";
+
+      case 2:
+        return "volunteer";
+
+      default:
+        return "No Type";
+
+    }    
+  }
+
   const getListRenderItem = (item) => {
 
     return (
     <TouchableOpacity activeOpacity={0.8} style={styles.volunteerCardContainer} onPress={() => navigation.navigate({name: "AddVolunteer", params: {tempVolunteerInfo: volunteeresInfo[getVolunteerItemIndex(item.volunteerID)], isForEdit: true}, merge: true})}>
 
-      <Image style={styles.volunteerImageStyle} source={{ uri: item.volunteerImageUri }} />
+      <Image style={styles.volunteerImageStyle} source={{ uri: item.image }} />
 
 
 
       <View style={styles.volunteerInfoContainer}>
 
-        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>שם: </Text>{item.volunteerFullName}</Text>
-        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>ת.ז: </Text>{item.volunteerID}</Text>
-        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>תל״מ: </Text>{item.volunteerBirthdayDate}</Text>
-        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>טל״ס: </Text>{item.volunteerPhoneNumber}</Text>
-        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>דוא״ל: </Text>{item.volunteerEmail}</Text>
-        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>סוג משתמש: </Text>{item.volunteerType}</Text>
+        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>שם: </Text>{item.name}</Text>
+        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>ת.ז: </Text>{item.personalID}</Text>
+        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>תל״מ: </Text>{item.userBirthDate}</Text>
+        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>טל״ס: </Text>{item.phoneNumber}</Text>
+        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>דוא״ל: </Text>{item.email}</Text>
+        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>סוג משתמש: </Text>{getUserRankString(item.volunteerType)}</Text>
 
 
       </View>

@@ -6,43 +6,40 @@ import BackButton from "../components/BackButton";
 import { FlatList, TouchableOpacity } from "react-native-gesture-handler";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { useIsFocused } from "@react-navigation/native";
+import { fetchAllDocuments } from "../config/database_interface";
 
 
-export default function ManageDropArea({ navigation, route}) {
+export default function ManageDropArea({ navigation, route }) {
 
-    const isFocused = useIsFocused();
+  let [dropAreasInfo, setDropAreasInfo] = useState([]);
 
-  let [dropAreasInfo, setDropAreasInfo] = useState([{dropAreaID: "123456789", dropAreaName: "חנות סאמר", dropAreaAddress: "ירושלים - גבל אלבוכבר - חי אל-מדארס בניין מספר 14"}])
+  const fetchAllDropAreasDocuments = async () => {
+
+    setDropAreasInfo([]);
+
+    const dropAreasList = await fetchAllDocuments("dropAreas");
+
+    console.log(dropAreasList);
+
+    setDropAreasInfo(dropAreasInfo => [...dropAreasList]);
+  };
 
   React.useEffect(() => {
-    if (route.params?.tempDropAreaInfo) {
-      
-      let newDropAreaInfo = route.params?.tempDropAreaInfo;
+    fetchAllDropAreasDocuments();
+    const willFocusSubscription = navigation.addListener('focus', () => {
+      fetchAllDropAreasDocuments();
+    });
 
-      if(route.params?.isForEdit === true){
+    return willFocusSubscription;
+  }, []);
 
-        dropAreasInfo[getDropAreaItemIndex(newDropAreaInfo.dropAreaID)] = newDropAreaInfo;
-
-        
-
-        setDropAreasInfo(dropAreasInfo);
-
-      } else {
-
-        const newDropAreasList = [...dropAreasInfo, newDropAreaInfo];
-        
-        setDropAreasInfo(newDropAreasList);
-      }
-      
-    }
-  }, [route.params?.tempDropAreaInfo]);
 
   const getDropAreaItemIndex = (dropAreaID) => {
 
-    for(let currIndex = 0; currIndex < dropAreasInfo.length; currIndex++) {
-      
-      if(dropAreasInfo[currIndex].dropAreaID === dropAreaID){
-          
+    for (let currIndex = 0; currIndex < dropAreasInfo.length; currIndex++) {
+
+      if (dropAreasInfo[currIndex].id === dropAreaID) {
+
         return currIndex;
       }
     }
@@ -53,16 +50,16 @@ export default function ManageDropArea({ navigation, route}) {
   const getListRenderItem = (item) => {
 
     return (
-    <TouchableOpacity activeOpacity={0.8} style={styles.dropAreaCardContainer} onPress={() => navigation.navigate({name: "AddDropArea", params: {tempDropAreaInfo: dropAreasInfo[getDropAreaItemIndex(item.dropAreaID)], isForEdit: true}, merge: true})}>
+      <TouchableOpacity activeOpacity={0.8} style={styles.dropAreaCardContainer} onPress={() => navigation.navigate({ name: "AddDropArea", params: { tempDropAreaInfo: dropAreasInfo[getDropAreaItemIndex(item.id)], isForEdit: true}, merge: true })}>
 
-      <View style={styles.dropAreaInfoContainer}>
+        <View style={styles.dropAreaInfoContainer}>
 
-        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>שם הנקודה: </Text>{item.dropAreaName}</Text>
-        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>כתובת הנקודה: </Text>{item.dropAreaAddress}</Text>
+          <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>שם הנקודה: </Text>{item.name}</Text>
+          <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>כתובת הנקודה: </Text>{item.address}</Text>
 
-      </View>
+        </View>
 
-    </TouchableOpacity>
+      </TouchableOpacity>
     );
   }
 
@@ -75,7 +72,7 @@ export default function ManageDropArea({ navigation, route}) {
       <FlatList keyExtractor={(item, index) => index} showsVerticalScrollIndicator={false} style={styles.flatListStyle} data={dropAreasInfo} renderItem={({ item }) => { return getListRenderItem(item) }} />
 
 
-      <View style={styles.addButtonStyle}><TouchableOpacity style={styles.toucheableAddBStyle} onPress={() => navigation.navigate({name: "AddDropArea", params: {isForEdit: false, updated: false}, merge: true})}><Text style={styles.addButtonTextStyle}>+</Text></TouchableOpacity></View>
+      <View style={styles.addButtonStyle}><TouchableOpacity style={styles.toucheableAddBStyle} onPress={() => navigation.navigate({ name: "AddDropArea", params: { isForEdit: false}, merge: true })}><Text style={styles.addButtonTextStyle}>+</Text></TouchableOpacity></View>
 
 
     </Background>
@@ -139,27 +136,27 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     alignItems: 'center',
     marginBottom: 5,
-},
+  },
 
-dropAreaInfoContainer: {
+  dropAreaInfoContainer: {
     alignItems: "flex-end",
     width: "100%",
     padding: 10
-},
+  },
 
-infoTitleTextStyle: {
+  infoTitleTextStyle: {
 
     fontSize: 20,
     fontWeight: "bold",
     direction: "rtl",
     textAlign: "right"
-},
+  },
 
-infoTextStyle: {
+  infoTextStyle: {
     fontSize: 18,
     direction: "rtl",
     textAlign: "right"
-}
+  }
 
 });
 
