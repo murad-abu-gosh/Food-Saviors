@@ -67,7 +67,7 @@ export default function HomeScreen({ navigation }) {
       </TouchableOpacity>
       <View style={styles.buttonContainer}>
         <SafeAreaView style={styles.LogoTextContainer}>
-          <Text style={styles.Text}>ניצול מזון : 79879</Text>
+          <Text style={styles.Text}>ניצול מזון : 12,000 ק''ג</Text>
 
           <Logo />
         </SafeAreaView>
@@ -117,6 +117,7 @@ export default function HomeScreen({ navigation }) {
         >
           <Text style={styles.appButtonText}>Test</Text>
         </TouchableOpacity> */}
+
       </View>
     </Background>
   );
@@ -179,6 +180,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-evenly",
     padding: 16,
+    width: "100%",
     borderRadius: 100
   },
   appButtonContainer: {
@@ -188,7 +190,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    width: 200
+    
+    width: "90%"
   },
   appButtonText: {
     fontSize: 18,

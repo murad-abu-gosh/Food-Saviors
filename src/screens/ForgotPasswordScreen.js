@@ -23,7 +23,7 @@ export default function ForgotPasswordScreen({ navigation }) {
     <Background>
       <BackButton goBack={navigation.goBack} />
       <Logo />
-      <Header>Restore Password</Header>
+      <Header>שחזור סיסמה</Header>
       <TextInput
         label="E-mail address"
         returnKeyType="done"
