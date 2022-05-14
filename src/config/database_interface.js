@@ -82,7 +82,7 @@ export async function fetchDocumentById(collectionName, itemID) {
 }
 
 export async function addNewDropArea(areaName, areaAddress) {
-  // const areasRef = collection(db, 'dropAreas');
+  // const areasRef = collection(db, 'dropAreas'); 
 
   const docRef = await addDoc(collection(db, 'dropAreas'), {
     name: areaName,
