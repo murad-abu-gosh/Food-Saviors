@@ -29,7 +29,7 @@ export async function addNewItem(itemName, itemImgRef, itemAvgWeight, itemCurren
 }
 
 function checkForId(item, itemName) {
-
+ 
   if (item.data()["name"] == itemName) {
     updateDocumentById("items", item.id, { "id": item.id });
   }
