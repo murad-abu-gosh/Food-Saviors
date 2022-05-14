@@ -48,7 +48,7 @@ export async function getIdByName(collectionName, itemName) {
  */
 export async function updateDocumentById(collectionName, itemID, updated_fields) {
   const itemRef = doc(db, collectionName, itemID);
-
+ 
   // Updates the fields of the item
   await updateDoc(itemRef, updated_fields).catch(alert);
 }
