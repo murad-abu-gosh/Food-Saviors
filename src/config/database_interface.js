@@ -24,7 +24,7 @@ export async function addNewItem(itemName, itemImgRef, itemAvgWeight, itemCurren
 
   updateDocumentById("items", docRef.id, { "id": docRef.id });
 
-  return docRef.id;
+  return docRef.id; 
 
 }
 
