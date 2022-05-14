@@ -119,7 +119,7 @@ export async function addNewImportRecord(recordID, recordUserID, recordDate, rec
  * @param {*} userRank 
  */
 export async function createNewUser(userEmail, password, displayName, userPersonalID, phoneNumber, userPhotoURL, userBirthDate, userRank) {
-
+ 
   await createUserWithEmailAndPassword(auth, userEmail, password)
     .then((userCredential) => {
       // ...
