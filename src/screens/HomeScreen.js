@@ -72,12 +72,12 @@ export default function HomeScreen({ navigation }) {
           <Logo />
         </SafeAreaView>
         {/* all the button  */}
-        {/* <TouchableOpacity
+        <TouchableOpacity
           onPress={() => navigation.navigate("ManageGoods")}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>ניהול סחורות</Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={() => navigation.navigate("ManageItems")}
           style={styles.appButtonContainer}
@@ -111,12 +111,7 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.appButtonText}>משובים</Text>
         </TouchableOpacity>
 
-        {/* <TouchableOpacity
-          onPress={() => navigation.navigate("TestScreen")}
-          style={styles.appButtonContainer}
-        >
-          <Text style={styles.appButtonText}>Test</Text>
-        </TouchableOpacity> */}
+       
 
       </View>
     </Background>

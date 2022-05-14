@@ -45,7 +45,7 @@ export default function ManageItems({ navigation }) {
   const [ShowText, setShowText] = useState(true);
   const [Showback, setShowBack] = useState(false);
   const [Items_id, setItems_id] = useState();
-  const [tmp_id, settmp_id] = useState();
+
   const [List_id, setList_id] = useState([]);
   useEffect(() => {
     // write your code here, it's like componentWillMount
@@ -59,17 +59,19 @@ export default function ManageItems({ navigation }) {
     setImageList([]);
     setWeightList([]);
     setList_id([]);
-
+    console.log("featch.....");
+    console.log(itemsArray);
     for (let item in itemsArray) {
       setItems((prev) => [...prev, itemsArray[item].name]);
+      console.log("id : " + itemsArray[item].id);
       setImageList((prev) => [...prev, itemsArray[item].image]);
       setWeightList((prev) => [...prev, itemsArray[item].average_weight]);
       setList_id((prev) => [...prev, itemsArray[item].id]);
     }
   };
-  const handleAddItems = () => {
+  const handleAddItems = async () => {
     Keyboard.dismiss();
-    addNewItem(Name, image, Weight, 0);
+    await addNewItem(Name, image, Weight, 0);
 
     if (!Name.trim() || !Weight.trim() || Name == null || Weight == null) {
       Alert.alert("שגיאה ", "תבדוק שהטקסט אינו רק !!", [{ text: "תמשיך" }]);
@@ -77,14 +79,18 @@ export default function ManageItems({ navigation }) {
     } else {
       setModalVisible(!modalVisible);
     }
-    setItems([...ItemsList, Name]);
-    setImageList([...imageList, image]);
-    setWeightList([...WeightList, Weight]);
-    // setList_id([...List_id, New_id]);
-    setName(null);
-    setImage(null);
-    setWeight(null);
-    setItems_id(null);
+    await fetchAllDocuments("items").then((result) => {
+      CreateItemsCard(result);
+    });
+    // setItems([...ItemsList, Name]);
+    // setImageList([...imageList, image]);
+    // setWeightList([...WeightList, Weight]);
+    // // setList_id([...List_id, New_id]);
+    // setName(null);
+    // setImage(null);
+    // setWeight(null);
+
+    // setItems_id(null);
   };
 
   const handleEditItems = (index) => {
@@ -106,7 +112,12 @@ export default function ManageItems({ navigation }) {
     imageList[index] = image;
   };
   const deleteItems = (index) => {
+    console.log("dlete" + List_id);
     deleteDocumentById("items", List_id[index]);
+
+    //  fetchAllDocuments("items").then((result) => {
+    //   CreateItemsCard(result);
+    // });
     let CopyItemsList = [...ItemsList];
     CopyItemsList.splice(index, 1);
     setItems(CopyItemsList);
@@ -144,7 +155,10 @@ export default function ManageItems({ navigation }) {
         onPress={() =>
           setModalVisibleItem(true) ||
           setModalindex(index) ||
-          setImage(imageList[index])
+          setImage(imageList[index]) ||
+          fetchAllDocuments("items").then((result) => {
+            CreateItemsCard(result);
+          })
         }
       >
         <Items Name={Item} image={imageList[index]} />
@@ -210,12 +224,13 @@ export default function ManageItems({ navigation }) {
 
             <TouchableOpacity
               style={styles.DeletButton}
-              onPress={() =>
-                deleteItems(modalindex) ||
-                setModalVisibleItem(!modalVisibleItem) ||
-                fetchAllDocuments("items").then((result) => {
-                  CreateItemsCard(result);
-                })
+              onPress={
+                () =>
+                  deleteItems(modalindex) ||
+                  setModalVisibleItem(!modalVisibleItem)
+                // fetchAllDocuments("items").then((result) => {
+                //   CreateItemsCard(result);
+                // })
               }
             >
               <Text style={styles.appButtonText}>הוסיר</Text>
@@ -326,11 +341,11 @@ export default function ManageItems({ navigation }) {
           </View>
           <TouchableOpacity
             style={styles.appButtonContainer}
-            onPress={() =>
-              handleAddItems() ||
-              fetchAllDocuments("items").then((result) => {
-                CreateItemsCard(result);
-              })
+            onPress={
+              () => handleAddItems()
+              // fetchAllDocuments("items").then((result) => {
+              //   CreateItemsCard(result);
+              // })
             }
           >
             <Text style={styles.appButtonText}>אישור</Text>
@@ -355,23 +370,17 @@ export default function ManageItems({ navigation }) {
           flexGrow: 1,
 
           flexDirection: "row",
-       
 
           width: "100%",
           marginTop: 5,
-        
+
           flexWrap: "wrap",
         }}
         alwaysBounceVertical={false}
         showsVerticalScrollIndicator={false}
       >
         {showCard}
-
-
-       
       </ScrollView>
-
-      
 
       <View style={styles.addButtonStyle}>
         <TouchableOpacity
@@ -381,8 +390,6 @@ export default function ManageItems({ navigation }) {
           <Text style={styles.addButtonTextStyle}>+</Text>
         </TouchableOpacity>
       </View>
-
-    
     </Background>
   );
 }

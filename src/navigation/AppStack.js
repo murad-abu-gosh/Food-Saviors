@@ -5,6 +5,7 @@ import {
   AddDropArea,
   AddFeedback,
   AddVolunteer,
+  ExportAndWaste,
   Feedback,
   HomeScreen,
   ManageDropArea,
@@ -12,9 +13,10 @@ import {
   ManageItems,
   ManageVolunteers,
   SeeStatistics,
-  TestScreen
+  UpdateGoods
+ 
 } from "../screens";
-import VolunteerCard from "../components/VolunteerCard";
+
 
 const Stack = createStackNavigator();
 
@@ -24,7 +26,7 @@ export const AppStack = () => {
       headerShown: false
     }}>
       <Stack.Screen name="Home" component={HomeScreen} />
-      {/* <Stack.Screen name="ManageGoods" component={ManageGoods} /> */}
+      <Stack.Screen name="ManageGoods" component={ManageGoods} />
       <Stack.Screen name="ManageItems" component={ManageItems} />
       <Stack.Screen name="ManageVolunteers" component={ManageVolunteers} />
       <Stack.Screen name="AddVolunteer" component={AddVolunteer} />
@@ -33,7 +35,9 @@ export const AppStack = () => {
       <Stack.Screen name="Feedback" component={Feedback} />
       <Stack.Screen name="AddFeedback" component={AddFeedback} />
       <Stack.Screen name="SeeStatistics" component={SeeStatistics} />
-      <Stack.Screen name="TestScreen" component={TestScreen} />
+      <Stack.Screen name="UpdateGoods" component={UpdateGoods} />
+      <Stack.Screen name="ExportAndWaste" component={ExportAndWaste} />
+      
     </Stack.Navigator>
   );
 };
