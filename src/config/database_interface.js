@@ -100,7 +100,7 @@ export async function addNewDropArea(areaName, areaAddress) {
  */
 export async function addNewImportRecord(recordID, recordUserID, recordDate, recordMap) {
   // const recordsRef = collection(db, 'importGoodsRecord');
-
+ 
   const docRef = await setDoc(collection(db, 'importGoodsRecord'), {
     userID: recordUserID,
     date: recordDate,
