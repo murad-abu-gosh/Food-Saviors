@@ -5,50 +5,50 @@ import { getStatusBarHeight } from "react-native-status-bar-height";
 import BackButton from "../components/BackButton";
 import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
 import { auth } from "../config";
+import { addNewFeedback } from "../config/database_interface";
 import { theme } from "../core/theme";
 
 
 
 
 export default function AddFeedback({ navigation, route }) {
-
-    const userID =  auth.currentUser.uid;
-
+ 
+    const [userID, setUserID] =  useState(auth.currentUser.uid);
     const [feedbackID, setID] = useState();
-    const [feedbackTitle, setTitle] = useState();
-    const [feedbackDate, setDate] = useState();
+    const [feedbackTitle, setTitle] = useState();   
     const [feedbackUserInfo, setUserInfo] = useState();
     const [feedbackContent, setContent] = useState();
-
     const [isForEdit, setIsForEdit] = useState(route.params?.isForEdit);
 
+
+    const getTodayDateStr = () => {
+
+        let today = new Date();
+        let dd = String(today.getDate()).padStart(2, '0');
+        let mm = String(today.getMonth() + 1).padStart(2, '0');
+        let yyyy = today.getFullYear();
+
+        today = dd + '-' + mm + '-' + yyyy;
+
+        return today;
+    };
+
+    const [feedbackDate, setDate] = useState(getTodayDateStr());
+
+    
     useEffect(() => {
 
         if (route.params?.tempFeedbackInfo) {
 
             let currFeedbackInfo = route.params?.tempFeedbackInfo;
 
-            let today = new Date();
-            let dd = String(today.getDate()).padStart(2, '0');
-            let mm = String(today.getMonth() + 1).padStart(2, '0');
-            let yyyy = today.getFullYear();
-
-            today = dd + '-' + mm + '-' + yyyy;
-
-           
-            setTitle(currFeedbackInfo.feedbackTitle);
-            setDate(today);
-            setUserInfo("אבו גמל מעאד")
-            setContent(currFeedbackInfo.feedbackContent);
+            setTitle(currFeedbackInfo.title);
+            setUserInfo(route.params?.userInfo);
+            setContent(currFeedbackInfo.content);
         }
 
         setIsForEdit(route.params?.isForEdit);
 
-        if (isForEdit === false) {
-           
-            setID((parseInt((Math.random() * Math.pow(10, 9)), 10)).toString())
-
-        }
     }, [route.params?.tempFeedbackInfo]);
     
 
@@ -56,9 +56,28 @@ export default function AddFeedback({ navigation, route }) {
 
     const onSaveButtonPressed = () => {
 
-        let feedbackInfo = {feedbackID: feedbackID, feedbackTitle: feedbackTitle, feedbackDate: feedbackDate, feedbackUserInfo: feedbackUserInfo, feedbackContent: feedbackContent};
+        if(isForEdit){
 
-        navigation.navigate({ name: 'Feedback', params: { tempFeedbackInfo: feedbackInfo, isForEdit: isForEdit}, merge: true });
+            let updatedFeedbackJSON = {
+                "userID": userID,
+                "title": feedbackTitle,
+                "date": feedbackDate,
+                "content": feedbackContent
+              }
+
+            updateDocumentById("feedbacks", feedbackID, updatedFeedbackJSON).then(() => {
+
+                navigation.navigate({ name: 'Feedback' });
+            });
+        } else {
+
+            console.log(userID + " " + feedbackTitle + " " + feedbackDate + " " + feedbackContent);
+            
+            addNewFeedback(userID, feedbackTitle, feedbackDate, feedbackContent).then(() => {
+
+                navigation.navigate({ name: 'Feedback' });
+            });
+        }
 
     };
 

@@ -45,13 +45,19 @@ export default function AddDropArea({ navigation, route }) {
 
         if(isForEdit){
 
-            updateDocumentById("dropAreas", dropAreaID, {"name": dropAreaName, "address": dropAreaAddress});
+            updateDocumentById("dropAreas", dropAreaID, {"name": dropAreaName, "address": dropAreaAddress}).then(() => {
+
+                navigation.navigate({ name: 'ManageDropArea' }); 
+            });
         } else {
 
-            addNewDropArea(dropAreaName, dropAreaAddress);
+            addNewDropArea(dropAreaName, dropAreaAddress).then(() => {
+
+                navigation.navigate({ name: 'ManageDropArea' });
+            });
         }
 
-        navigation.navigate({ name: 'ManageDropArea' });
+        
     };
 
     const onDeleteButtonPressed = () => {
