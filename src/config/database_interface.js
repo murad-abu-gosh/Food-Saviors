@@ -163,7 +163,7 @@ export async function addNewFeedback(feedbackUserID, feedbackTitle, feedbackDate
 
 export async function addNewGoodWaste(wasteItemID, wasteAmount) {
   // const itemsRef = collection(db, 'goodsWastes');
-
+   
   const docRef = await addDoc(collection(db, 'goodsWastes'), {
     itemID: wasteItemID,
     amount: wasteAmount
