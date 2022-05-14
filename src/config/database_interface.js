@@ -136,7 +136,7 @@ export async function createNewUser(userEmail, password, displayName, userPerson
 
 async function addNewUser(userEmail, displayName, userPersonalID, userPhoneNumber, userPhotoURL, userBirthDate, userRank) {
   // let usersRef = collection(db, 'users');
-
+ 
   const docRef = await addDoc(collection(db, 'users'), {
     name: displayName,
     email : userEmail,
