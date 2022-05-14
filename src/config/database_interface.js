@@ -69,7 +69,7 @@ export async function fetchAllDocuments(collectionName) { // "items" "users" "dr
 }
 
 export async function fetchDocumentById(collectionName, itemID) {
-  const docRef = doc(db, collectionName, itemID);
+  const docRef = doc(db, collectionName, itemID); 
   const docSnap = await getDoc(docRef);
 
   if (docSnap.exists()) {
