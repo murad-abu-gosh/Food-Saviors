@@ -8,7 +8,7 @@ import BackButton from "../components/BackButton";
 import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
 import { theme } from "../core/theme";
 import * as ImagePicker from "expo-image-picker";
-import { createNewUser } from "../config/database_interface";
+import { createNewUser, deleteDocumentById, updateDocumentById } from "../config/database_interface";
 
 
 
@@ -28,8 +28,9 @@ export default function AddVolunteer({ navigation, route }) {
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState(null);
     const [items, setItems] = useState([
-        { label: 'מתנדב', value: 1 },
-        { label: 'אדמין', value: 2 }
+        { label: 'Head Admin', value: 0 },
+        { label: 'Admin', value: 1 },
+        { label: 'Volunteer', value: 2 }
     ]);
 
     const [dropDownPlaceholder, setDropDownPlaceholder] = useState("סוג משתמש" );
@@ -54,7 +55,7 @@ export default function AddVolunteer({ navigation, route }) {
 
         if(isForEdit){
 
-            let newUserJSON = {
+            let updatedUserJSON = {
                 "name": volunteerFullName,
                 "email" : volunteerEmail,
                 "personalID" : volunteerPersonalID,
@@ -64,29 +65,50 @@ export default function AddVolunteer({ navigation, route }) {
                 "rank" : volunteerRank
               };
 
-              
+            updateDocumentById("users", volunterID, updatedUserJSON).then(() => {
 
-            updateDocumentById("users", volunterID, newUserJSON);
+                navigation.navigate({ name: 'ManageVolunteers' });
+            });
+
         } else {
 
-            setPassword("1234oooooooooooooo");
-            setPersonalID("999999");
+            createNewUser(volunteerEmail, volunteerPassword, volunteerFullName, volunteerPersonalID, volunteerPhoneNumber, volunteerImageUri, volunteerBirthdayDate, volunteerRank).then(() => {
 
-            console.log(volunteerEmail+ " " + "1234oooooooooooooo" + " " + volunteerFullName + " " + volunteerPersonalID + " " +  volunteerPhoneNumber+ " " + volunteerImageUri+ " " + volunteerBirthdayDate+ " " + volunteerRank);
-
-            createNewUser(volunteerEmail, "1234oooooooooooooo", volunteerFullName, "1234oooooooooooooo",  volunteerPhoneNumber, volunteerImageUri, volunteerBirthdayDate, volunteerRank);
+                navigation.navigate({ name: 'ManageVolunteers' });
+            });
         }
 
-        navigation.navigate({ name: 'ManageVolunteers' });
-
-        navigation.navigate({name: 'ManageVolunteers', merge: true});
+        
 
     };
+
+    const getUserRankString = (userRank) => {
+
+        switch(userRank){
+    
+          case 0:
+            return "Head Admin";
+    
+          case 1:
+            return "Admin";
+    
+          case 2:
+            return "volunteer";
+    
+          default:
+            return "No Type";
+    
+        }    
+      }
 
     const onDeleteButtonPressed = () => {
         /// T-Shirt
         
+        deleteDocumentById("users", volunterID).then(() => {
 
+            navigation.navigate({ name: 'ManageVolunteers' });
+        });
+        
     }
 
     const isValidInfo = () => {
@@ -99,16 +121,20 @@ export default function AddVolunteer({ navigation, route }) {
         if (route.params?.tempVolunteerInfo) {
           
           let currVolunterInfo = route.params?.tempVolunteerInfo;
+
+          console.log("Here");
+          console.log(currVolunterInfo);
           
-          setImage(currVolunterInfo.volunteerImageUri);
-          setFullName(currVolunterInfo.volunteerFullName);
-          setPersonalID(currVolunterInfo.volunteerID);
-          setDate(currVolunterInfo.volunteerBirthdayDate);
-          setPhoneNumber(currVolunterInfo.volunteerPhoneNumber);
-          setEmail(currVolunterInfo.volunteerEmail);
-          setRank(currVolunterInfo.volunteerType);
-          setValue(currVolunterInfo.volunteerType);
-          setDropDownPlaceholder(currVolunterInfo.volunteerType);
+          setID(currVolunterInfo.id);
+          setImage(currVolunterInfo.image);
+          setFullName(currVolunterInfo.name);
+          setPersonalID(currVolunterInfo.personalID);
+          setDate(currVolunterInfo.birthDate);
+          setPhoneNumber(currVolunterInfo.phoneNumber);
+          setEmail(currVolunterInfo.email);
+          setRank(currVolunterInfo.rank);
+          setValue(currVolunterInfo.rank);
+          setDropDownPlaceholder(getUserRankString(currVolunterInfo.rank));
         }
 
         if (route.params?.isForEdit){
@@ -138,11 +164,11 @@ export default function AddVolunteer({ navigation, route }) {
 
                     <TextInput style={styles.infoTextInputStyle} value={volunteerEmail} onChangeText={(value) => setEmail(value)} placeholder="דואר אלקטרוני" keyboardType="email-address"></TextInput>
 
-                    <TextInput style={styles.infoTextInputStyle} value={volunteerPersonalID} onChangeText={(value) => setID(value)} placeholder="ת.ז" keyboardType="number-pad"></TextInput>
+                    <TextInput style={styles.infoTextInputStyle} value={volunteerPersonalID} onChangeText={(value) => setPersonalID(value)} placeholder="ת.ז" keyboardType="number-pad"></TextInput>
 
                     <TextInput style={styles.infoTextInputStyle} value={volunteerPhoneNumber} onChangeText={(value) => setPhoneNumber(value)} placeholder="מספר טלפון" keyboardType="phone-pad"></TextInput>
 
-                    <TextInput style={[styles.infoTextInputStyle, {display: isForEdit? "flex" : "none"}]} onChangeText={(value) => setPassword(value)} placeholder="סיסמה" keyboardType="name-phone-pad" secureTextEntry={true}></TextInput>
+                    <TextInput style={[styles.infoTextInputStyle, {display: isForEdit? "none" : "flex"}]} onChangeText={(value) => setPassword(value)} placeholder="סיסמה" keyboardType="name-phone-pad" secureTextEntry={true}></TextInput>
 
                     <DatePicker
                         style={styles.datePickerStyle}
@@ -205,7 +231,7 @@ export default function AddVolunteer({ navigation, route }) {
 
             <TouchableOpacity style={styles.saveButtonStyle} onPress={onSaveButtonPressed}><Text style={styles.saveButtonTextStyle}>שמור</Text></TouchableOpacity>
 
-            <TouchableOpacity style={[styles.deleteButtonStyle, {display: isForEdit? "flex" : "none"}]}><Text style={styles.deleteButtonTextStyle}>הוסיר</Text></TouchableOpacity>
+            <TouchableOpacity style={[styles.deleteButtonStyle, {display: isForEdit? "flex" : "none"}]} onPress={onDeleteButtonPressed}><Text style={styles.deleteButtonTextStyle}>הוסיר</Text></TouchableOpacity>
             
         </ImageBackground>
 

@@ -57,7 +57,7 @@ export default function ManageVolunteers({ navigation, route }) {
 
     for(let currIndex = 0; currIndex < volunteeresInfo.length; currIndex++) {
       
-      if(volunteeresInfo[currIndex].volunteerID === volunterID){
+      if(volunteeresInfo[currIndex].id === volunterID){
         return currIndex;
       }
     }
@@ -87,7 +87,7 @@ export default function ManageVolunteers({ navigation, route }) {
   const getListRenderItem = (item) => {
 
     return (
-    <TouchableOpacity activeOpacity={0.8} style={styles.volunteerCardContainer} onPress={() => navigation.navigate({name: "AddVolunteer", params: {tempVolunteerInfo: volunteeresInfo[getVolunteerItemIndex(item.volunteerID)], isForEdit: true}, merge: true})}>
+    <TouchableOpacity activeOpacity={0.8} style={styles.volunteerCardContainer} onPress={() => navigation.navigate({name: "AddVolunteer", params: {tempVolunteerInfo: volunteeresInfo[getVolunteerItemIndex(item.id)], isForEdit: true}, merge: true})}>
 
       <Image style={styles.volunteerImageStyle} source={{ uri: item.image }} />
 
@@ -97,10 +97,10 @@ export default function ManageVolunteers({ navigation, route }) {
 
         <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>שם: </Text>{item.name}</Text>
         <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>ת.ז: </Text>{item.personalID}</Text>
-        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>תל״מ: </Text>{item.userBirthDate}</Text>
+        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>תל״מ: </Text>{item.birthDate}</Text>
         <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>טל״ס: </Text>{item.phoneNumber}</Text>
         <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>דוא״ל: </Text>{item.email}</Text>
-        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>סוג משתמש: </Text>{getUserRankString(item.volunteerType)}</Text>
+        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>סוג משתמש: </Text>{getUserRankString(item.rank)}</Text>
 
 
       </View>

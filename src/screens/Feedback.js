@@ -5,40 +5,62 @@ import Background from "../components/Background";
 import BackButton from "../components/BackButton";
 import { FlatList, TouchableOpacity } from "react-native-gesture-handler";
 import { getStatusBarHeight } from "react-native-status-bar-height";
-import { useIsFocused } from "@react-navigation/native";
+import { fetchAllDocuments, fetchDocumentById } from "../config/database_interface";
 
 
 
 export default function Feedback({ navigation, route}) {
 
-  let [feedbacksInfo, setFeedbacksInfo] = useState([]);
+  let [feedbacksInfo, setFeedbacksInfo] = useState([{
+    userID: "12345425",
+    title: "אוכל לא טריא",
+    date: "14-5-2022",
+    content: "הירקות והפירות במצב לא טוב צריך לבדוק את הקירור"
+  }, {
+    userID: "21300",
+    title: "איחור בהגעת ההזמנה",
+    date: "11-12-2021",
+    content: "ההזמנות מיגיעות מאוחר מידי"
+  }]);
 
-  const fetchAllFeedbacksDocuments = async () => {
+  // const namesMap = new Map();
 
-    setFeedbacksInfo([]);
+  // const fetchAllFeedbacksDocuments = async () => {
 
-    const feedbacksList = await fetchAllDocuments("feedbacks");
+  //   setFeedbacksInfo([]);
 
-    console.log(feedbacksList);
+  //   const feedbacksList = await fetchAllDocuments("feedbacks");
 
-    setDropAreasInfo(feedbacksInfo => [...feedbacksList]);
-  };
+  //   feedbacksList.forEach((feedbackObject) => {
 
-  React.useEffect(() => {
-    fetchAllFeedbacksDocuments();
-    const willFocusSubscription = navigation.addListener('focus', () => {
-      fetchAllFeedbacksDocuments();
-    });
+  //     console.log(feedbackObject.userID);
+      
+  //     if(!namesMap.has(feedbackObject.userID)){
 
-    return willFocusSubscription;
-  }, []);
+  //       let currUser = fetchDocumentById("users", feedbackObject.userID);
+
+  //       namesMap.set(currUser.id, currUser.name);
+  //     }
+  //   });
+
+  //   setFeedbacksInfo(() => [...feedbacksList]);
+  // };
+
+  // React.useEffect(() => {
+  //   fetchAllFeedbacksDocuments();
+  //   const willFocusSubscription = navigation.addListener('focus', () => {
+  //     fetchAllFeedbacksDocuments();
+  //   });
+
+  //   return willFocusSubscription;
+  // }, []);
 
 
   const getFeedbackItemIndex = (feedbackID) => {
 
     for(let currIndex = 0; currIndex < feedbacksInfo.length; currIndex++) {
       
-      if(feedbacksInfo[currIndex].feedbackID === feedbackID){
+      if(feedbacksInfo[currIndex].id === feedbackID){
           
         return currIndex;
       }
@@ -50,16 +72,16 @@ export default function Feedback({ navigation, route}) {
   const getListRenderItem = (item) => {
 
     return (
-    <TouchableOpacity activeOpacity={0.8} style={styles.feedbackCardContainer} onPress={() => navigation.navigate({name: "AddFeedback", params: {tempFeedbackInfo: feedbacksInfo[getFeedbackItemIndex(item.feedbackID)], isForEdit: true}, merge: true})}>
+    <TouchableOpacity activeOpacity={0.8} style={styles.feedbackCardContainer} onPress={() => navigation.navigate({name: "AddFeedback", params: {tempFeedbackInfo: feedbacksInfo[getFeedbackItemIndex(item.id)], isForEdit: true}, merge: true})}>
 
       <View style={styles.feedbackHeaderInfoContainer}>
 
-        <Text style={styles.TitleTextStyle}>{item.feedbackTitle}</Text>
-        <Text style={styles.dateAndUserInfoTextStyle}>{item.feedbackUserInfo + " - " + item.feedbackDate}</Text>
+        <Text style={styles.TitleTextStyle}>{item.title}</Text>
+        <Text style={styles.dateAndUserInfoTextStyle}>{item.date + " - " + "אבו גמל מעאד"}</Text>
 
       </View>
 
-      <View style={styles.feedbackContentContainer}><Text style={styles.feedbackContentText}>{item.feedbackContent}</Text></View>
+      <View style={styles.feedbackContentContainer}><Text style={styles.feedbackContentText}>{item.content}</Text></View>
 
     </TouchableOpacity>
     );
