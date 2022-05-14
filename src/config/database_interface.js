@@ -60,7 +60,7 @@ export async function updateDocumentById(collectionName, itemID, updated_fields)
  */
 export async function fetchAllDocuments(collectionName) { // "items" "users" "dropAreas"
   let Mycollection = await getDocs(collection(db, collectionName));
-  let arr = [];
+  let arr = []; 
   Mycollection.forEach(element => {
     arr.push(element.data());
   });
