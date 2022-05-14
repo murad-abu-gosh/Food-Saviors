@@ -200,5 +200,5 @@ export async function addNewWasteRecord(wasteDate, itemToAmountMap) {
 }
 
 export async function deleteDocumentById(collectionName, documentID) {
-  await deleteDoc(doc(db, collectionName, documentID));
+  await deleteDoc(doc(db, collectionName, documentID));   
 }
