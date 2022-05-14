@@ -159,7 +159,7 @@ export async function addNewFeedback(feedbackUserID, feedbackTitle, feedbackDate
     content: feedbackContent
   }).catch(alert);
   updateDocumentById("feedbacks", docRef.id, { "id": docRef.id });
-}
+}  
 
 export async function addNewGoodWaste(wasteItemID, wasteAmount) {
   // const itemsRef = collection(db, 'goodsWastes');
