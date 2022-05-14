@@ -175,7 +175,7 @@ export async function addNewGoodWaste(wasteItemID, wasteAmount) {
 
 export async function addNewExportRecord(exportUserID, exportDropAreaID, exportDate, itemToAmountMap) {
   // const itemsRef = collection(db, 'exportGoodsRecords');
-
+   
   const docRef = await addDoc(collection(db, 'exportGoodsRecords'), {
     userID: exportUserID,
     dropAreaID: exportDropAreaID,
