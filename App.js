@@ -3,8 +3,11 @@ import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { RootNavigator } from "./src/navigation";
 import { AuthenticatedUserProvider } from "./src/providers";
-
+import { LogBox } from 'react-native';
 const Stack = createStackNavigator();
+
+LogBox.ignoreLogs(['Setting a timer']);
+LogBox.ignoreLogs(['AsyncStorage']);
 
 export default function App() {
   return (
