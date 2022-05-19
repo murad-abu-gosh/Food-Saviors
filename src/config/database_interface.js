@@ -1,48 +1,35 @@
-import {
-  collection,
-  setDoc,
-  doc,
-  addDoc,
-  getDocs,
-  getDoc,
-  updateDoc,
-  deleteDoc,
-} from "firebase/firestore";
-import { db, auth } from "./firebase";
-import { LogBox } from "react-native";
+import { collection, setDoc, doc, addDoc, getDocs, getDoc, updateDoc, deleteDoc } from "firebase/firestore"
+import { ref, getDownloadURL, uploadBytesResumable, uploadBytes } from "firebase/storage";
+import { db, auth, storage } from "./firebase";
 import { async } from "@firebase/util";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { useState } from "react";
 
-LogBox.ignoreLogs(["Setting a timer"]);
 /**
- * Adds a new item entry to database and adds document ID as a field
+ * Adds a new item entry to database and returns document ID
  * @param itemName
  * @param itemImgRef
  * @param itemAvgWeight
  * @param itemCurrentAmount
  */
-export async function addNewItem(
-  itemName,
-  itemImgRef,
-  itemAvgWeight,
-  itemCurrentAmount
-) {
-  // let itemsRef = await collection(db, 'items');
-  const docRef = await addDoc(collection(db, "items"), {
+export async function addNewItem(itemName, itemImgRef, itemAvgWeight, itemCurrentAmount) {
+  const imageRef = uploadImage(itemImgRef);
+  const docRef = await addDoc(collection(db, 'items'), {
     name: itemName,
-    image: itemImgRef,
+    image: imageRef,
     average_weight: itemAvgWeight,
-    current_amount: itemCurrentAmount,
-  }).catch(alert);
-
-  await updateDocumentById("items", docRef.id, { id: docRef.id });
+    current_amount: itemCurrentAmount
+  })
+    .catch(alert);
 
   return docRef.id;
+
 }
 
 function checkForId(item, itemName) {
+
   if (item.data()["name"] == itemName) {
-    updateDocumentById("items", item.id, { id: item.id });
+    updateDocumentById("items", item.id, { "id": item.id });
   }
 }
 
@@ -57,11 +44,7 @@ export async function getIdByName(collectionName, itemName) {
  * @param itemID String value of the item's ID
  * @param {*} updated_fields object containing fields and values eg.: {field1 : 1, field2 : "test", field3 : true}
  */
-export async function updateDocumentById(
-  collectionName,
-  itemID,
-  updated_fields
-) {
+export async function updateDocumentById(collectionName, itemID, updated_fields) {
   const itemRef = doc(db, collectionName, itemID);
 
   // Updates the fields of the item
@@ -73,16 +56,12 @@ export async function updateDocumentById(
  * @param collectionName String value of collection name
  * @returns array containing all documents
  */
-export async function fetchAllDocuments(collectionName) {
-  // "items" "users" "dropAreas"
+export async function fetchAllDocuments(collectionName) { // "items" "users" "dropAreas"
   let Mycollection = await getDocs(collection(db, collectionName));
   let arr = [];
-  Mycollection.forEach((element) => {
-
-    let document = element.data();
-    document["id"] = element.id;
-
-    arr.push(document);
+  Mycollection.forEach(element => {
+    element.data()["id"] = element.id; //add ID to JSON
+    arr.push(element.data());
   });
 
   return arr;
@@ -94,6 +73,7 @@ export async function fetchDocumentById(collectionName, itemID) {
 
   if (docSnap.exists()) {
     // console.log("Document data:", docSnap.data());
+    docSnap.data()["id"] = docSnap.id;
     return docSnap.data();
   } else {
     // doc.data() will be undefined in this case
@@ -101,15 +81,23 @@ export async function fetchDocumentById(collectionName, itemID) {
   }
 }
 
+/**
+ * Adds new Drop Area entry to database. Returns the document's ID
+ * @param String areaName 
+ * @param String areaAddress 
+ * @returns 
+ */
 export async function addNewDropArea(areaName, areaAddress) {
   // const areasRef = collection(db, 'dropAreas');
 
-  const docRef = await addDoc(collection(db, "dropAreas"), {
+  const docRef = await addDoc(collection(db, 'dropAreas'), {
     name: areaName,
-    address: areaAddress,
+    address: areaAddress
   }).catch(alert);
 
-  updateDocumentById("dropAreas", docRef.id, { id: docRef.id });
+  return docRef.id;
+
+  // updateDocumentById("dropAreas", docRef.id, { "id": docRef.id });
 }
 
 /**
@@ -118,42 +106,33 @@ export async function addNewDropArea(areaName, areaAddress) {
  * @param recordDate
  * @param recordMap
  */
-export async function addNewImportRecord(
-  recordID,
-  recordUserID,
-  recordDate,
-  recordMap
-) {
+export async function addNewImportRecord(recordID, recordUserID, recordDate, recordMap) {
   // const recordsRef = collection(db, 'importGoodsRecord');
 
-  const docRef = await setDoc(collection(db, "importGoodsRecord"), {
+  const docRef = await setDoc(collection(db, 'importGoodsRecord'), {
     userID: recordUserID,
     date: recordDate,
-    itemsToAmounts: recordMap, // <itemReference : int>
+    itemsToAmounts: recordMap // <itemReference : int>
   }).catch(alert);
-  updateDocumentById("importGoodsRecord", docRef.id, { id: docRef.id });
+  // updateDocumentById("importGoodsRecord", docRef.id, { "id": docRef.id });
+
+  return docRef.id;
+
 }
 
 /**
- *
- * @param {*} userName
- * @param {*} userEmail
- * @param {*} userPhoneNumber
- * @param {*} userDateCreated
- * @param {*} userRank
+ * 
+ * @param {*} userName 
+ * @param {*} userEmail 
+ * @param {*} userPhoneNumber 
+ * @param {*} userDateCreated 
+ * @param {*} userRank 
  */
-export async function createNewUser(
-  userEmail,
-  password,
-  displayName,
-  userPersonalID,
-  phoneNumber,
-  userPhotoURL,
-  userBirthDate,
-  userRank
-) {
+export async function createNewUser(userEmail, password, displayName, userPersonalID, phoneNumber, userPhotoURL, userBirthDate, userRank) {
+  let userID = null;
   await createUserWithEmailAndPassword(auth, userEmail, password)
     .then((userCredential) => {
+      userID =  userCredential.user.uid;
       // ...
     })
     .catch((error) => {
@@ -162,96 +141,98 @@ export async function createNewUser(
       // ..
     });
 
-  await addNewUser(
-    userEmail,
-    displayName,
-    userPersonalID,
-    phoneNumber,
-    userPhotoURL,
-    userBirthDate,
-    userRank
-  );
+  const docRefID = await addNewUser(userID, userEmail, displayName, userPersonalID, phoneNumber, userPhotoURL, userBirthDate, userRank);
+  return docRefID;
+
 }
 
-async function addNewUser(
-  userEmail,
-  displayName,
-  userPersonalID,
-  userPhoneNumber,
-  userPhotoURL,
-  userBirthDate,
-  userRank
-) {
+
+
+async function addNewUser(userID, userEmail, displayName, userPersonalID, userPhoneNumber, userPhotoURL, userBirthDate, userRank) {
   // let usersRef = collection(db, 'users');
 
-  const docRef = await addDoc(collection(db, "users"), {
+  await setDoc(doc(db, "users", userID), {
     name: displayName,
     email: userEmail,
     personalID: userPersonalID,
     image: userPhotoURL,
     phoneNumber: userPhoneNumber,
     birthDate: userBirthDate,
-    rank: userRank,
+    rank: userRank
   }).catch(alert);
+  // updateDocumentById("users", docRef.id, { "id": docRef.id });
 
-  updateDocumentById("users", docRef.id, { id: docRef.id });
+  return userID;
+
 }
 
-export async function addNewFeedback(
-  feedbackUserID,
-  feedbackTitle,
-  feedbackDate,
-  feedbackContent
-) {
-  const docRef = await addDoc(collection(db, "feedbacks"), {
+export async function addNewFeedback(feedbackUserID, feedbackTitle, feedbackDate, feedbackContent) {
+  const docRef = await addDoc(collection(db, 'feedbacks'), {
     userID: feedbackUserID,
     title: feedbackTitle,
     date: feedbackDate,
-    content: feedbackContent,
+    content: feedbackContent
   }).catch(alert);
-  updateDocumentById("feedbacks", docRef.id, { id: docRef.id });
+  // updateDocumentById("feedbacks", docRef.id, { "id": docRef.id });
+
+  return docRef.id;
 }
 
 export async function addNewGoodWaste(wasteItemID, wasteAmount) {
   // const itemsRef = collection(db, 'goodsWastes');
 
-  const docRef = await addDoc(collection(db, "goodsWastes"), {
+  const docRef = await addDoc(collection(db, 'goodsWastes'), {
     itemID: wasteItemID,
-    amount: wasteAmount,
+    amount: wasteAmount
   }).catch(alert);
+  // updateDocumentById("goodsWastes", docRef.id, { "id": docRef.id });
+  return docRef.id;
 
-  updateDocumentById("goodsWastes", docRef.id, { id: docRef.id });
 }
 
-export async function addNewExportRecord(
-  exportUserID,
-  exportDropAreaID,
-  exportDate,
-  itemToAmountMap
-) {
+export async function addNewExportRecord(exportUserID, exportDropAreaID, exportDate, itemToAmountMap) {
   // const itemsRef = collection(db, 'exportGoodsRecords');
 
-  const docRef = await addDoc(collection(db, "exportGoodsRecords"), {
+  const docRef = await addDoc(collection(db, 'exportGoodsRecords'), {
     userID: exportUserID,
     dropAreaID: exportDropAreaID,
     date: exportDate,
-    itemToAmount: itemToAmountMap,
+    itemToAmount: itemToAmountMap
   }).catch(alert);
 
-  updateDocumentById("exportGoodsRecords", docRef.id, { id: docRef.id });
+  // updateDocumentById("exportGoodsRecords", docRef.id, { "id": docRef.id });
+  return docRef.id;
+
 }
 
 export async function addNewWasteRecord(wasteDate, itemToAmountMap) {
   // const itemsRef = collection(db, 'goodsWasteRecords');
 
-  const docRef = await addDoc(collection(db, "goodsWasteRecords"), {
+  const docRef = await addDoc(collection(db, 'goodsWasteRecords'), {
     date: wasteDate,
-    itemToAmount: itemToAmountMap,
+    itemToAmount: itemToAmountMap
   }).catch(alert);
 
-  updateDocumentById("goodsWasteRecords", docRef.id, { id: docRef.id });
+  // updateDocumentById("goodsWasteRecords", docRef.id, { "id": docRef.id });
+  return docRef.id;
+
+
 }
 
 export async function deleteDocumentById(collectionName, documentID) {
   await deleteDoc(doc(db, collectionName, documentID));
+}
+
+export function uploadImage(imageURI) {
+  const storageRef = ref(storage, imageURI);
+  // Create file metadata including the content type
+  /** @type {any} */
+  const metadata = {
+    contentType: 'image/png',
+  };
+
+  // Upload the file and metadata
+  const uploadTask = uploadBytes(storageRef, file, metadata);
+  return storageRef;
+
 }
