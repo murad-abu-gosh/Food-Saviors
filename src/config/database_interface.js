@@ -26,6 +26,8 @@ export async function addNewItem(itemName, itemImgUri, itemAvgWeight, itemCurren
 
 }
 
+
+
 export async function deleteItem(documentID) {
   let docRef = doc(db, "items", documentID);
   const docSnap = await getDoc(docRef);
@@ -33,7 +35,29 @@ export async function deleteItem(documentID) {
   deleteFileFromStorage(itemImgName);
   deleteDoc(doc(db, "items", documentID));
 
+}
 
+/**
+ * Updates item. If image to be updated, imageURI must be provided. Otherwise, put imageURI=null
+ * @param {*} collectionName 
+ * @param {*} itemID 
+ * @param {*} imageURI imageURI or null
+ * @param {*} updated_fields 
+ */
+export async function updateItem(collectionName, itemID, imageURI, updated_fields) {
+  const itemRef = doc(db, collectionName, itemID);
+  if (!imageURI){ // no new image
+  updateDoc(itemRef, updated_fields).catch(alert);
+  return;
+  }
+  const docSnap = await getDoc(itemRef);
+  deleteFileFromStorage(docSnap.data()["imageName"]); //delete old image
+  const imageRef = await uploadImageAsync(imageURI);
+  updated_fields.image = imageRef.URL;
+  updated_fields.imageName = imageRef.name;
+
+  updateDoc(itemRef, updated_fields).catch(alert);
+  
 }
 
 /**
