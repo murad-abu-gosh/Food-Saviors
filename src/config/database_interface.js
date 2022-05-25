@@ -164,16 +164,15 @@ export async function fetchDocumentById(collectionName, itemID) {
 
 /**
  * Adds new Drop Area entry to database. Returns the document's ID
- * @param String areaName 
- * @param String areaAddress 
  * @returns 
  */
-export async function addNewDropArea(areaName, areaAddress) {
+export async function addNewDropArea(areaName,areaHoodName, areaAddress) {
   // const areasRef = collection(db, 'dropAreas');
 
   const docRef = await addDoc(collection(db, 'dropAreas'), {
     name: areaName,
-    address: areaAddress
+    address: areaAddress,
+    hoodName : areaHoodName
   }).catch(alert);
 
   return docRef.id;
