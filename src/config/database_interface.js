@@ -243,7 +243,7 @@ function convertJsonArrayToMap(jsonArray) {
 }
 
 
-async function addNewUser(userID, userEmail, displayName, userPersonalID, userPhoneNumber, userPhotoURI, userBirthDate, userRank) {
+async function addNewUser(userID, userEmail, displayName, userPersonalID, userPhoneNumber, userPhotoURI, userRank) {
   const imageRef = await uploadImageAsync(userPhotoURI);
 
   await setDoc(doc(db, "users", userID), {
@@ -253,7 +253,6 @@ async function addNewUser(userID, userEmail, displayName, userPersonalID, userPh
     image: imageRef.URL,
     imageName: imageRef.name,
     phoneNumber: userPhoneNumber,
-    birthDate: userBirthDate,
     rank: userRank,
     isActive: true
   }).catch(alert);
