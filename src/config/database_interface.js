@@ -264,7 +264,7 @@ async function addNewUser(userID, userEmail, displayName, userPersonalID, userPh
  * Function does not delete user from records (as it is needed for other info). Instead, sets "isActive" to false.
  * @param {*} userID user ID to be deleted
  */
- export function deleteUser(userID) {
+ export async function deleteUser(userID) {
   const userRef = doc(db, "users", userID);
 
   const docSnap = await getDoc(userRef);
