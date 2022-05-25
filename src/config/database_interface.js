@@ -403,6 +403,7 @@ function generateName() {
 }
 
 async function compressImage(imageURI) {
+  console.log("compressing image...");
   const resizedPhoto = await manipulateAsync(
     imageURI,
     [{ resize: { width: 300 } }], // resize to width of 300 and preserve aspect ratio 

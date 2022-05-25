@@ -8,6 +8,7 @@ import {
   addNewItem,
   deleteDocumentById,
   updateDocumentById,
+  deleteItem,
 } from "../config/database_interface";
 
 import { getStatusBarHeight } from "react-native-status-bar-height";
@@ -113,7 +114,7 @@ export default function ManageItems({ navigation }) {
   };
   const deleteItems = (index) => {
     console.log("dlete" + List_id);
-    deleteDocumentById("items", List_id[index]);
+    deleteItem(List_id[index]);
 
     //  fetchAllDocuments("items").then((result) => {
     //   CreateItemsCard(result);
