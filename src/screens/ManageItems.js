@@ -4,7 +4,7 @@ import Background from "../components/Background";
 import BackButton from "../components/BackButton";
 import Items from "../components/Items";
 import {
-  fetchAllDocuments,
+  fetchItemsSorted,
   addNewItem,
   deleteDocumentById,
   updateDocumentById,
@@ -49,7 +49,7 @@ export default function ManageItems({ navigation }) {
   const [List_id, setList_id] = useState([]);
   useEffect(() => {
     // write your code here, it's like componentWillMount
-    fetchAllDocuments("items").then((result) => {
+    fetchItemsSorted().then((result) => {
       CreateItemsCard(result);
     });
   }, []);
@@ -79,7 +79,7 @@ export default function ManageItems({ navigation }) {
     } else {
       setModalVisible(!modalVisible);
     }
-    await fetchAllDocuments("items").then((result) => {
+    await fetchItemsSorted().then((result) => {
       CreateItemsCard(result);
     });
     // setItems([...ItemsList, Name]);
@@ -156,7 +156,7 @@ export default function ManageItems({ navigation }) {
           setModalVisibleItem(true) ||
           setModalindex(index) ||
           setImage(imageList[index]) ||
-          fetchAllDocuments("items").then((result) => {
+          fetchItemsSorted().then((result) => {
             CreateItemsCard(result);
           })
         }

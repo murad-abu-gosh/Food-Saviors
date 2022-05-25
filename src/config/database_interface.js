@@ -1,6 +1,7 @@
 import { collection, setDoc, doc, addDoc, getDocs, getDoc, updateDoc, deleteDoc, increment, query, orderBy, where } from "firebase/firestore"
 import { ref, getDownloadURL, uploadBytesResumable, uploadBytes, getStorage, deleteObject } from "firebase/storage";
 import { db, auth, storage } from "./firebase";
+import { manipulateAsync, FlipType, SaveFormat } from 'expo-image-manipulator';
 import { async } from "@firebase/util";
 import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { useState } from "react";
@@ -46,9 +47,9 @@ export async function deleteItem(documentID) {
  */
 export async function updateItem(itemID, imageURI, updated_fields) {
   const itemRef = doc(db, 'items', itemID);
-  if (!imageURI){ // no new image
-  updateDoc(itemRef, updated_fields).catch(alert);
-  return;
+  if (!imageURI) { // no new image
+    updateDoc(itemRef, updated_fields).catch(alert);
+    return;
   }
   const docSnap = await getDoc(itemRef);
   deleteFileFromStorage(docSnap.data()["imageName"]); //delete old image
@@ -57,7 +58,7 @@ export async function updateItem(itemID, imageURI, updated_fields) {
   updated_fields.imageName = imageRef.name;
 
   updateDoc(itemRef, updated_fields).catch(alert);
-  
+
 }
 
 /**
@@ -65,7 +66,7 @@ export async function updateItem(itemID, imageURI, updated_fields) {
  * @param {*} recordMap Object in the form of (itemID : addAmount). For example:
  * {"gHGHN34d2" : 12 , "bfSYHIKJ83" : -20 , ....}
  */
- async function updateItemsAmountsFromRecord(recordMap) {
+async function updateItemsAmountsFromRecord(recordMap) {
   let itemsCollection = await getDocs(collection(db, 'items'));
   // console.log(recordMap);
   let oldAmount = 0;
@@ -85,11 +86,11 @@ export async function updateItem(itemID, imageURI, updated_fields) {
 }
 
 
- /**
-  * Fetches all items data from the database, sorted by field 'name'. Attaches document ID to JSON
-  * @returns JSON array of items.
-  */
-export async function fetchItemsSorted(){
+/**
+ * Fetches all items data from the database, sorted by field 'name'. Attaches document ID to JSON
+ * @returns JSON array of items.
+ */
+export async function fetchItemsSorted() {
   const qry = query(collection(db, 'items'), orderBy('name'));
 
   let Mycollection = await getDocs(qry);
@@ -166,13 +167,13 @@ export async function fetchDocumentById(collectionName, itemID) {
  * Adds new Drop Area entry to database. Returns the document's ID
  * @returns 
  */
-export async function addNewDropArea(areaName,areaHoodName, areaAddress) {
+export async function addNewDropArea(areaName, areaHoodName, areaAddress) {
   // const areasRef = collection(db, 'dropAreas');
 
   const docRef = await addDoc(collection(db, 'dropAreas'), {
     name: areaName,
     address: areaAddress,
-    hoodName : areaHoodName
+    hoodName: areaHoodName
   }).catch(alert);
 
   return docRef.id;
@@ -204,7 +205,7 @@ export async function addNewImportRecord(recordUserID, recordDate, recordArray) 
 
 function convertJsonArrayToMap(jsonArray) {
   let recordsMap = new Map();
-  jsonArray.forEach( (obj) => recordsMap.set(obj.id , obj.amount));
+  jsonArray.forEach((obj) => recordsMap.set(obj.id, obj.amount));
   return recordsMap;
 }
 
@@ -220,14 +221,14 @@ function convertJsonArrayToMap(jsonArray) {
  * @param {*} userDateCreated 
  * @param {*} userRank 
  */
- export async function createNewUser(userEmail, password, displayName, userPersonalID, phoneNumber, userPhotoURL, userRank) {
+export async function createNewUser(userEmail, password, displayName, userPersonalID, phoneNumber, userPhotoURL, userRank) {
   let originalUser = auth.currentUser;
   let newUserID = null;
   await createUserWithEmailAndPassword(auth, userEmail, password).then((userCredential) => {
-          newUserID =  userCredential.user.uid;
-          // ...
-          console.log("Hello world");
-    })
+    newUserID = userCredential.user.uid;
+    // ...
+    console.log("Hello world");
+  })
     .catch((error) => {
       const errorCode = error.code;
       const errorMessage = error.message;
@@ -263,7 +264,7 @@ async function addNewUser(userID, userEmail, displayName, userPersonalID, userPh
  * Function does not delete user from records (as it is needed for other info). Instead, sets "isActive" to false.
  * @param {*} userID user ID to be deleted
  */
- export async function deleteUser(userID) {
+export async function deleteUser(userID) {
   const userRef = doc(db, "users", userID);
 
   const docSnap = await getDoc(userRef);
@@ -287,9 +288,9 @@ async function addNewUser(userID, userEmail, displayName, userPersonalID, userPh
  */
 export async function updateUser(userID, imageURI, updated_fields) {
   const userDocRef = doc(db, 'users', userID);
-  if (!imageURI){ // no new image
-  updateDoc(userDocRef, updated_fields).catch(alert);
-  return;
+  if (!imageURI) { // no new image
+    updateDoc(userDocRef, updated_fields).catch(alert);
+    return;
   }
   const docSnap = await getDoc(userDocRef);
   deleteFileFromStorage(docSnap.data()["imageName"]); //delete old image
@@ -298,7 +299,7 @@ export async function updateUser(userID, imageURI, updated_fields) {
   updated_fields.imageName = imageRef.name;
 
   updateDoc(userDocRef, updated_fields).catch(alert);
-  
+
 }
 
 
@@ -312,8 +313,8 @@ export async function updateUser(userID, imageURI, updated_fields) {
  */
 export async function fetchUsersSorted(onlyActive) {
   let qry = null;
-  if (onlyActive){
-    qry = query(collection(db, 'users'), where("isActive", "==", true),  orderBy('name'));
+  if (onlyActive) {
+    qry = query(collection(db, 'users'), where("isActive", "==", true), orderBy('name'));
   }
   else {
     qry = query(collection(db, 'users'), orderBy('name'));
@@ -401,12 +402,22 @@ function generateName() {
   return text;
 }
 
+async function compressImage(imageURI) {
+  const resizedPhoto = await manipulateAsync(
+    imageURI,
+    [{ resize: { width: 300 } }], // resize to width of 300 and preserve aspect ratio 
+    { compress: 0.7, format: 'jpeg' },
+   );
+  return resizedPhoto.uri;
+}
+
 /**
  * Uploads image to Firebase Storage. Returns image name and its download URL. (name is generated randomly)
- * @param {} uri URI of the image to upload
+ * @param {} imageURI URI of the image to upload
  * @returns JOSN object of format: {name : <image/file name> , URL : <image/file download URL>}
  */
-export async function uploadImageAsync(uri) {
+export async function uploadImageAsync(imageURI) {
+  imageURI = await compressImage(imageURI);
   // Why are we using XMLHttpRequest? See:
   // https://github.com/expo/expo/issues/2402#issuecomment-443726662
   const blob = await new Promise((resolve, reject) => {
@@ -419,7 +430,7 @@ export async function uploadImageAsync(uri) {
       reject(new TypeError("Network request failed"));
     };
     xhr.responseType = "blob";
-    xhr.open("GET", uri, true);
+    xhr.open("GET", imageURI, true);
     xhr.send(null);
   });
   let imgName = generateName();
@@ -429,7 +440,7 @@ export async function uploadImageAsync(uri) {
   blob.close();
   let imgURL = await getDownloadURL(fileRef);
   console.log("Image URL: " + imgURL);
-  return { name: imgName, URL : imgURL };
+  return { name: imgName, URL: imgURL };
 
 }
 
@@ -455,5 +466,5 @@ export async function fetchCurrentUserInfo() {
   let userEmail = docSnap.data()["email"];
   let userImage = docSnap.data()["image"];
 
-  return { "name": userName, "email": userEmail, "image" : userImage };
+  return { "name": userName, "email": userEmail, "image": userImage };
 }
