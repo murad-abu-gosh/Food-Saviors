@@ -44,8 +44,8 @@ export async function deleteItem(documentID) {
  * @param {*} imageURI imageURI or null
  * @param {*} updated_fields 
  */
-export async function updateItem(collectionName, itemID, imageURI, updated_fields) {
-  const itemRef = doc(db, collectionName, itemID);
+export async function updateItem(itemID, imageURI, updated_fields) {
+  const itemRef = doc(db, 'items', itemID);
   if (!imageURI){ // no new image
   updateDoc(itemRef, updated_fields).catch(alert);
   return;
@@ -187,7 +187,8 @@ export async function addNewDropArea(areaName, areaAddress) {
  * @param recordDate
  * @param recordMap
  */
-export async function addNewImportRecord(recordUserID, recordDate, recordMap) {
+export async function addNewImportRecord(recordUserID, recordDate, recordArray) {
+  let recordMap = convertJsonArrayToMap(recordArray);
   // const recordsRef = collection(db, 'importGoodsRecord');
 
   const docRef = await addDoc(collection(db, 'importGoodsRecords'), {
@@ -202,6 +203,14 @@ export async function addNewImportRecord(recordUserID, recordDate, recordMap) {
 
 }
 
+function convertJsonArrayToMap(jsonArray) {
+  let recordsMap = new Map();
+  jsonArray.forEach( (obj) => recordsMap.set(obj.id , obj.amount));
+  return recordsMap;
+}
+
+//=============================================================================================
+
 
 
 /**
@@ -214,41 +223,35 @@ export async function addNewImportRecord(recordUserID, recordDate, recordMap) {
  */
  export async function createNewUser(userEmail, password, displayName, userPersonalID, phoneNumber, userPhotoURL, userRank) {
   let originalUser = auth.currentUser;
-  let userID = null;
-
-  console.log("Hiiiiiiii");
+  let newUserID = null;
   await createUserWithEmailAndPassword(auth, userEmail, password).then((userCredential) => {
-          userID =  userCredential.user.uid;
+          newUserID =  userCredential.user.uid;
           // ...
           console.log("Hello world");
     })
     .catch((error) => {
       const errorCode = error.code;
       const errorMessage = error.message;
-      // ..
-      console.log("Kill THem all");
     });
-  console.log("new user created: " + userID);
+  console.log("new user created: " + newUserID);
   await updateCurrentUser(auth, originalUser);
-  // userID = auth.currentUser.uid;
   console.log("current user: " + auth.currentUser.uid);
 
 
-  const docRefID = await addNewUser(userID, userEmail, displayName, userPersonalID, phoneNumber, userPhotoURL, userRank);
+  const docRefID = await addNewUser(newUserID, userEmail, displayName, userPersonalID, phoneNumber, userPhotoURL, userRank);
   return docRefID;
-
 }
 
 
-
-async function addNewUser(userID, userEmail, displayName, userPersonalID, userPhoneNumber, userPhotoURL, userBirthDate, userRank) {
-  // let usersRef = collection(db, 'users');
+async function addNewUser(userID, userEmail, displayName, userPersonalID, userPhoneNumber, userPhotoURI, userBirthDate, userRank) {
+  const imageRef = await uploadImageAsync(userPhotoURI);
 
   await setDoc(doc(db, "users", userID), {
     name: displayName,
     email: userEmail,
     personalID: userPersonalID,
-    image: userPhotoURL,
+    image: imageRef.URL,
+    imageName: imageRef.name,
     phoneNumber: userPhoneNumber,
     birthDate: userBirthDate,
     rank: userRank,
@@ -257,6 +260,52 @@ async function addNewUser(userID, userEmail, displayName, userPersonalID, userPh
 
   return userID;
 }
+
+/**
+ * Function does not delete user from records (as it is needed for other info). Instead, sets "isActive" to false.
+ * @param {*} userID user ID to be deleted
+ */
+ export function deleteUser(userID) {
+  const userRef = doc(db, "users", userID);
+
+  const docSnap = await getDoc(userRef);
+  let userImgName = docSnap.data()["imageName"];
+  deleteFileFromStorage(userImgName);
+
+  updateDoc(userRef, { isActive: false }).catch(alert);
+  if (userID === auth.currentUser.uid) {
+    console.log("signing out current user...");
+    signOut();
+  }
+
+}
+
+/**
+ * 
+ * @param {*} userID 
+ * @param {*} imageURI put null if no image change
+ * @param {*} updated_fields 
+ * @returns 
+ */
+export async function updateUser(userID, imageURI, updated_fields) {
+  const userDocRef = doc(db, 'users', userID);
+  if (!imageURI){ // no new image
+  updateDoc(userDocRef, updated_fields).catch(alert);
+  return;
+  }
+  const docSnap = await getDoc(userDocRef);
+  deleteFileFromStorage(docSnap.data()["imageName"]); //delete old image
+  const imageRef = await uploadImageAsync(imageURI);
+  updated_fields.image = imageRef.URL;
+  updated_fields.imageName = imageRef.name;
+
+  updateDoc(userDocRef, updated_fields).catch(alert);
+  
+}
+
+
+
+
 /**
  * Fetches users data sorted by name in an array. Attaches userID as a field.
  * if onlyActive=true , fetches only active users. else, fetches all users.
@@ -283,20 +332,7 @@ export async function fetchUsersSorted(onlyActive) {
   return arr;
 }
 
-/**
- * Function does not delete user from records (as it is needed for other info). Instead, sets "isActive" to false.
- * @param {*} userID user ID to be deleted
- */
-export function deleteUser(userID) {
-  const userRef = doc(db, "users", userID);
 
-  updateDoc(userRef, { isActive: false }).catch(alert);
-  if (userID === auth.currentUser.uid) {
-    console.log("signing out current user...");
-    signOut();
-  }
-
-}
 
 export async function addNewFeedback(feedbackUserID, feedbackTitle, feedbackDate, feedbackContent) {
   const docRef = await addDoc(collection(db, 'feedbacks'), {
