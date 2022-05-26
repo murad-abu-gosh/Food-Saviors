@@ -244,7 +244,15 @@ export async function createNewUser(userEmail, password, displayName, userPerson
 
 
 async function addNewUser(userID, userEmail, displayName, userPersonalID, userPhoneNumber, userPhotoURI, userRank) {
-  const imageRef = await uploadImageAsync(userPhotoURI);
+  let imageRef = {};
+  if (!userPhotoURI){
+    imageRef.name = null;
+    imageRef.URL = null;
+
+  }else{
+    imageRef = await uploadImageAsync(userPhotoURI);
+  }
+
 
   await setDoc(doc(db, "users", userID), {
     name: displayName,
@@ -286,15 +294,16 @@ export async function deleteUser(userID) {
  * @param {*} updated_fields 
  * @returns 
  */
-export async function updateUser(userID, imageURI, updated_fields) {
+export async function updateUser(userID, updated_fields) {
   const userDocRef = doc(db, 'users', userID);
-  if (!imageURI) { // no new image
+  const docSnap = await getDoc(userDocRef);
+  if (updated_fields.image === docSnap.data()['image']) { // no new image
     updateDoc(userDocRef, updated_fields).catch(alert);
     return;
   }
-  const docSnap = await getDoc(userDocRef);
+  
   deleteFileFromStorage(docSnap.data()["imageName"]); //delete old image
-  const imageRef = await uploadImageAsync(imageURI);
+  const imageRef = await uploadImageAsync(updated_fields.image);
   updated_fields.image = imageRef.URL;
   updated_fields.imageName = imageRef.name;
 
@@ -405,7 +414,7 @@ function generateName() {
 async function compressImage(imageURI) {
   console.log("compressing image...");
   const resizedPhoto = await manipulateAsync(
-    imageURI,
+    imageURI, 
     [{ resize: { width: 300 } }], // resize to width of 300 and preserve aspect ratio 
     { compress: 0.7, format: 'jpeg' },
    );
