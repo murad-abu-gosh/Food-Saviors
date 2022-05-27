@@ -12,11 +12,10 @@ import {
 import Background from "../components/Background";
 import Logo from "../components/Logo";
 import { auth } from "../config";
-import { addNewImportRecord, fetchItemsSorted } from "../config/database_interface";
+import { addNewImportRecord, fetchDropAreasSorted, fetchItemsSorted } from "../config/database_interface";
 
-function testFun() {
-  let recArray = [ {amount : 15 , id : "ccIPreOPjMT4i6XkbwRn"}]
-  addNewImportRecord(auth.currentUser.uid, new Date(), recArray)
+async function testFun() {
+  console.log( await fetchDropAreasSorted() );
 }
 
 export default function HomeScreen({ navigation }) {

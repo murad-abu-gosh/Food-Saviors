@@ -180,13 +180,14 @@ export async function fetchDocumentById(collectionName, itemID) {
  * Adds new Drop Area entry to database. Returns the document's ID
  * @returns 
  */
-export async function addNewDropArea(areaName, areaHoodName, areaAddress) {
+export async function addNewDropArea(areaName, areaHoodName, areaAddress, isMainStorageValue) {
   // const areasRef = collection(db, 'dropAreas');
 
   const docRef = await addDoc(collection(db, 'dropAreas'), {
     name: areaName,
     address: areaAddress,
-    hoodName: areaHoodName
+    hoodName: areaHoodName,
+    isMainStorage : isMainStorageValue
   }).catch(alert);
 
   return docRef.id;
@@ -484,19 +485,39 @@ export async function addNewDeleteRecord(recordUserID, recordDate, recordArray) 
   return docRef.id;
 }
 
-export async function addNewWasteRecord(wasteDate, itemToAmountMap) {
-  // const itemsRef = collection(db, 'goodsWasteRecords');
+export async function addNewWasteRecord(recordUserID, wasteDropAreaID, wasteDate, itemToAmountMap) {
+  let recordMap = convertJsonArrayToMap(recordArray);
+  // const recordsRef = collection(db, 'importGoodsRecord');
 
   const docRef = await addDoc(collection(db, 'goodsWasteRecords'), {
+    userID: recordUserID,
     date: wasteDate,
-    itemToAmount: itemToAmountMap
+    dropAreaID: wasteDropAreaID,
+    itemsToAmounts: recordMap // <itemReference : int>
   }).catch(alert);
-
-  // updateDocumentById("goodsWasteRecords", docRef.id, { "id": docRef.id });
+  // updateDocumentById("importGoodsRecord", docRef.id, { "id": docRef.id });
+  console.log("Added new waste record: ", recordMap);
+  // updateItemsAmountsFromRecord(recordMap, -1);
   return docRef.id;
 
 
 }
+
+export async function fetchWasteRecordsSorted() {
+  const qry = query(collection(db, 'goodsWasteRecords'), orderBy('date', "desc"));
+
+  let Mycollection = await getDocs(qry);
+  let arr = [];
+  Mycollection.forEach(element => {
+    let elementWithID = element.data();
+    elementWithID["id"] = element.id //add ID to JSON
+    arr.push(elementWithID);
+  });
+
+  return arr;
+  
+}
+
 
 export async function deleteDocumentById(collectionName, documentID) {
   await deleteDoc(doc(db, collectionName, documentID));
