@@ -194,6 +194,21 @@ export async function addNewDropArea(areaName, areaHoodName, areaAddress) {
   // updateDocumentById("dropAreas", docRef.id, { "id": docRef.id });
 }
 
+export async function fetchDropAreasSorted(params) {
+  const qry = query(collection(db, 'dropAreas'), orderBy('name'));
+
+  let Mycollection = await getDocs(qry);
+  let arr = [];
+  Mycollection.forEach(element => {
+    let elementWithID = element.data();
+    elementWithID["id"] = element.id //add ID to JSON
+    arr.push(elementWithID);
+  });
+
+  return arr;
+  
+}
+
 /**
  *
  * @param recordID
@@ -217,6 +232,19 @@ export async function addNewImportRecord(recordUserID, recordDate, recordArray) 
 }
 
 export async function fetchImportRecordsSorted() {
+  const qry = query(collection(db, 'importGoodsRecords'), orderBy('date', 'desc'));
+
+  let Mycollection = await getDocs(qry);
+  let arr = [];
+  Mycollection.forEach(element => {
+    let elementWithID = element.data();
+    elementWithID["id"] = element.id //add ID to JSON
+    //convert Timestamp to Date:
+    element.data().date = timestampToDate(element.data().date);
+    arr.push(elementWithID);
+  });
+
+  return arr;
   
 }
 
