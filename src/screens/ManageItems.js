@@ -3,10 +3,11 @@ import * as ImagePicker from "expo-image-picker";
 import Background from "../components/Background";
 import BackButton from "../components/BackButton";
 import Items from "../components/Items";
+
 import {
-  fetchAllDocuments,
+  fetchItemsSorted,
+  deleteItem,
   addNewItem,
-  deleteDocumentById,
   updateDocumentById,
 } from "../config/database_interface";
 
@@ -28,7 +29,7 @@ import {
   Platform,
   View,
 } from "react-native";
-import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
+
 
 export default function ManageItems({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -44,12 +45,12 @@ export default function ManageItems({ navigation }) {
   const [imageList, setImageList] = useState([]);
   const [ShowText, setShowText] = useState(true);
   const [Showback, setShowBack] = useState(false);
-  const [Items_id, setItems_id] = useState();
+  const [Items_id, setItems_id] = useState("");
 
   const [List_id, setList_id] = useState([]);
   useEffect(() => {
     // write your code here, it's like componentWillMount
-    fetchAllDocuments("items").then((result) => {
+    fetchItemsSorted().then((result) => {
       CreateItemsCard(result);
     });
   }, []);
@@ -63,7 +64,7 @@ export default function ManageItems({ navigation }) {
     console.log(itemsArray);
     for (let item in itemsArray) {
       setItems((prev) => [...prev, itemsArray[item].name]);
-      console.log("id : " + itemsArray[item].id);
+     
       setImageList((prev) => [...prev, itemsArray[item].image]);
       setWeightList((prev) => [...prev, itemsArray[item].average_weight]);
       setList_id((prev) => [...prev, itemsArray[item].id]);
@@ -71,31 +72,34 @@ export default function ManageItems({ navigation }) {
   };
   const handleAddItems = async () => {
     Keyboard.dismiss();
-    await addNewItem(Name, image, Weight, 0);
-
+     let x = await addNewItem(Name, image, parseFloat(Weight), 0);
+      List_id.push( x);
+     setItems_id(x);
+  console.log("id: " + x );
     if (!Name.trim() || !Weight.trim() || Name == null || Weight == null) {
       Alert.alert("שגיאה ", "תבדוק שהטקסט אינו רק !!", [{ text: "תמשיך" }]);
       return;
     } else {
       setModalVisible(!modalVisible);
     }
-    await fetchAllDocuments("items").then((result) => {
-      CreateItemsCard(result);
-    });
-    // setItems([...ItemsList, Name]);
-    // setImageList([...imageList, image]);
-    // setWeightList([...WeightList, Weight]);
-    // // setList_id([...List_id, New_id]);
-    // setName(null);
-    // setImage(null);
-    // setWeight(null);
+    // await fetchAllDocuments("items").then((result) => {
+    //   CreateItemsCard(result);
+    // });
+    setItems([...ItemsList, Name]);
+    setImageList([...imageList, image]);
+    setWeightList([...WeightList, Weight]);
+      // setList_id(() => [...List_id, Items_id]);
+     console.log("list id: " + List_id);
+    setName(null);
+    setImage(null);
+    setWeight(null);
 
-    // setItems_id(null);
+    setItems_id(null);
   };
 
   const handleEditItems = (index) => {
     Keyboard.dismiss();
-    let editField = { name: Name, average_weight: Weight, image: image };
+    let editField = { name: Name, average_weight: parseFloat(Weight), image: image };
     updateDocumentById("items", List_id[index], editField);
     if (!Name.trim() || !Weight.trim()) {
       Alert.alert("שגיאה ", "תבדוק שהטקסט אינו רק !!", [{ text: "תמשיך" }]);
@@ -104,7 +108,8 @@ export default function ManageItems({ navigation }) {
       setShowText(!ShowText) ||
         setModalEdit(!modalEdit) ||
         setShowBack(false) ||
-        setShowAddimage(!ShowAddimage);
+        
+        setShowAddimage(!ShowAddimage)
     }
     ItemsList[index] = Name;
     WeightList[index] = Weight;
@@ -112,8 +117,9 @@ export default function ManageItems({ navigation }) {
     imageList[index] = image;
   };
   const deleteItems = (index) => {
-    console.log("dlete" + List_id);
-    deleteDocumentById("items", List_id[index]);
+    console.log("wieght : " + WeightList);
+    console.log("index : " + WeightList[index]);
+    deleteItem( List_id[index]);
 
     //  fetchAllDocuments("items").then((result) => {
     //   CreateItemsCard(result);
@@ -140,7 +146,7 @@ export default function ManageItems({ navigation }) {
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 1,
+      quality: 0,
     });
 
     if (!result.cancelled) {
@@ -155,10 +161,11 @@ export default function ManageItems({ navigation }) {
         onPress={() =>
           setModalVisibleItem(true) ||
           setModalindex(index) ||
-          setImage(imageList[index]) ||
-          fetchAllDocuments("items").then((result) => {
-            CreateItemsCard(result);
-          })
+          setShowText(true) ||
+          setModalEdit(true) ||
+          setShowBack(false) ||
+          setShowAddimage(false) ||
+          setImage(imageList[index]) //fetchAllDocuments("items").then((result) => {CreateItemsCard(result);})
         }
       >
         <Items Name={Item} image={imageList[index]} />
@@ -171,11 +178,43 @@ export default function ManageItems({ navigation }) {
             setModalVisibleItem(!modalVisibleItem);
           }}
         >
+  
           <ImageBackground
             style={styles.ProfileScreen}
             source={require("../assets/background_dot.png")}
             resizeMode="repeat"
           >
+            <TouchableOpacity
+              style={styles.BackButton}
+              onPress={() =>
+                setModalVisibleItem(!modalVisibleItem) ||
+                setShowText(true) ||
+                setModalEdit(true) ||
+                setShowBack(false) ||
+                setShowAddimage(false) ||
+                setImage(null)
+              }
+            >
+              <Image
+                style={styles.BackButton_Image}
+                source={require("../assets/arrow_back.png")}
+              />
+            </TouchableOpacity>
+            
+  <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+           
+            // margin: 40,
+            // padding: 10,
+            
+            alignItems: "center",
+            alignContent: "center",
+            justifyContent: "space-evenly",
+          }}
+          alwaysBounceVertical={false}
+          showsVerticalScrollIndicator={false}
+        >
             {/* <View> */}
             {ShowText ? (
               <View>
@@ -192,6 +231,7 @@ export default function ManageItems({ navigation }) {
 
             {!ShowText ? (
               // <KeyboardAvoidingWrapper>
+           
               <View style={styles.InputContainer}>
                 <TextInput
                   style={styles.input}
@@ -202,12 +242,12 @@ export default function ManageItems({ navigation }) {
 
                 <TextInput
                   style={styles.input}
-                  placeholder={WeightList[modalindex]}
+                  placeholder={String(WeightList[modalindex])}
                   //  value={WeightList[modalindex]}
                   onChangeText={(text) => setWeight(text)}
                 />
               </View>
-            ) : // </KeyboardAvoidingWrapper>
+                        ) : // </KeyboardAvoidingWrapper>
             null}
 
             <View style={styles.AddphotoContainer}>
@@ -228,9 +268,8 @@ export default function ManageItems({ navigation }) {
                 () =>
                   deleteItems(modalindex) ||
                   setModalVisibleItem(!modalVisibleItem)
-                // fetchAllDocuments("items").then((result) => {
-                //   CreateItemsCard(result);
-                // })
+                  
+               
               }
             >
               <Text style={styles.appButtonText}>הוסיר</Text>
@@ -269,12 +308,13 @@ export default function ManageItems({ navigation }) {
                   setModalEdit(!modalEdit) ||
                   setShowBack(!Showback) ||
                   setShowAddimage(!ShowAddimage)
+                 
                 }
               >
                 <Text style={styles.appButtonText}>עדכן</Text>
               </TouchableOpacity>
             ) : null}
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.BackButton}
               onPress={() =>
                 setModalVisibleItem(!modalVisibleItem) ||
@@ -289,12 +329,14 @@ export default function ManageItems({ navigation }) {
                 style={styles.BackButton_Image}
                 source={require("../assets/arrow_back.png")}
               />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
-            {/* </View> */}
+         
+            </ScrollView>
           </ImageBackground>
+          {/* </ScrollView> */}
         </Modal>
-        {/* </View> */}
+       
       </TouchableOpacity>
     );
   });
@@ -311,11 +353,37 @@ export default function ManageItems({ navigation }) {
         }}
       >
         {/* <View style={styles.HeddinScreeen}> */}
+
+      
         <ImageBackground
           style={styles.ProfileScreen}
           source={require("../assets/background_dot.png")}
           resizeMode="repeat"
         >
+            <TouchableOpacity
+            style={styles.BackButton}
+            onPress={() => setModalVisible(!modalVisible) || setImage(null)}
+          >
+            <Image
+              style={styles.BackButton_Image}
+              source={require("../assets/arrow_back.png")}
+            />
+          </TouchableOpacity>
+          <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+           
+            // margin: 40,
+            // padding: 10,
+            
+            alignItems: "center",
+            alignContent: "center",
+            justifyContent: "space-evenly",
+          }}
+          alwaysBounceVertical={false}
+          showsVerticalScrollIndicator={false}
+        >
+
           <View style={styles.DetailsContainer}></View>
           <TextInput
             style={styles.input}
@@ -343,23 +411,13 @@ export default function ManageItems({ navigation }) {
             style={styles.appButtonContainer}
             onPress={
               () => handleAddItems()
-              // fetchAllDocuments("items").then((result) => {
-              //   CreateItemsCard(result);
-              // })
+             
             }
           >
             <Text style={styles.appButtonText}>אישור</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.BackButton}
-            onPress={() => setModalVisible(!modalVisible) || setImage(null)}
-          >
-            <Image
-              style={styles.BackButton_Image}
-              source={require("../assets/arrow_back.png")}
-            />
-          </TouchableOpacity>
+          </ScrollView>
         </ImageBackground>
         {/* </View> */}
       </Modal>
@@ -434,8 +492,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#FFF",
   },
+  ScrollProfileScreen:{
+    
+  },
   ProfileScreen: {
     flex: 1,
+    
     backgroundColor: "#ffffff",
     // margin: 40,
     // padding: 10,
@@ -446,10 +508,12 @@ const styles = StyleSheet.create({
     // borderWidth: 5,
     // borderColor: "#1c6669"
   },
-  // InputContainer: {
-  //   flex: 0.5,
-  //   justifyContent: 'space-evenly'
-  // },
+ 
+  InputContainer: {
+  //  flexGrow: 0.5,
+  //  height:"40%",
+  //  backgroundColor: 'black'
+  },
   input: {
     width: 250,
     paddingHorizontal: 15,
@@ -458,12 +522,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 2,
     borderColor: "#1c6669",
+    margin: 5
   },
   appButtonContainer: {
     elevation: 8,
     backgroundColor: "#1c6669",
     borderRadius: 10,
     paddingVertical: 10,
+    margin: 10,
     paddingHorizontal: 12,
     width: 200,
   },
@@ -496,7 +562,7 @@ const styles = StyleSheet.create({
   },
   AddphotoContainer: {
     flexDirection: "row-reverse",
-
+    margin: 10,
     alignItems: "center",
     justifyContent: "center",
   },
