@@ -27,6 +27,10 @@ export async function addNewItem(itemName, itemImgUri, itemAvgWeight, itemCurren
 
 }
 
+function timestampToDate(timestamp) {
+  return timestamp.toDate();
+}
+
 
 
 export async function deleteItem(documentID) {
@@ -52,7 +56,10 @@ export async function updateItem(itemID, imageURI, updated_fields) {
     return;
   }
   const docSnap = await getDoc(itemRef);
-  deleteFileFromStorage(docSnap.data()["imageName"]); //delete old image
+
+  if ( docSnap.data()["imageName"] !== null){
+    deleteFileFromStorage(docSnap.data()["imageName"]); //delete old image
+  }
   const imageRef = await uploadImageAsync(imageURI);
   updated_fields.image = imageRef.URL;
   updated_fields.imageName = imageRef.name;
@@ -154,6 +161,7 @@ export async function fetchAllDocuments(collectionName) { // "items" "users" "dr
   return arr;
 }
 
+
 export async function fetchDocumentById(collectionName, itemID) {
   const docRef = doc(db, collectionName, itemID);
   const docSnap = await getDoc(docRef);
@@ -202,21 +210,45 @@ export async function addNewImportRecord(recordUserID, recordDate, recordArray) 
     itemsToAmounts: recordMap // <itemReference : int>
   }).catch(alert);
   // updateDocumentById("importGoodsRecord", docRef.id, { "id": docRef.id });
-
+  console.log("Added new import record: ", recordMap);
   updateItemsAmountsFromRecord(recordMap, 1);
   return docRef.id;
 
 }
 
+export async function fetchImportRecordsSorted() {
+  
+}
+
 function convertJsonArrayToMap(jsonArray) {
-  let recordsMap = new Map();
-  jsonArray.forEach((obj) => recordsMap.set(obj.id, obj.amount));
+  let recordsMap = {};
+  let currObj = {}
+  jsonArray.forEach((obj) => {
+    recordsMap[obj.id] = obj.amount;
+  });
+  console.log("Map : ");
+  console.log(recordsMap);
   return recordsMap;
 }
 
 //=============================================================================================
 
 
+export async function getUserByEmail(userEmail) {
+  let qry = null;
+  qry = query(collection(db, 'users'), where('email','==', userEmail));
+  let Mycollection = await getDocs(qry);
+
+  let currentUser;
+
+  Mycollection.forEach(element => {
+    
+    currentUser = element.data();
+  });
+
+  return currentUser;
+
+}
 
 /**
  * 
@@ -287,7 +319,7 @@ export async function deleteUser(userID) {
   updateDoc(userRef, { isActive: false }).catch(alert);
   if (userID === auth.currentUser.uid) {
     console.log("signing out current user...");
-    signOut();
+    auth.signOut();
   }
 
 }
@@ -307,7 +339,9 @@ export async function updateUser(userID, updated_fields) {
     return;
   }
 
-  deleteFileFromStorage(docSnap.data()["imageName"]); //delete old image
+  if ( docSnap.data()["imageName"] !== null){
+    deleteFileFromStorage(docSnap.data()["imageName"]); //delete old image
+  }
   const imageRef = await uploadImageAsync(updated_fields.image);
   updated_fields.image = imageRef.URL;
   updated_fields.imageName = imageRef.name;
@@ -361,7 +395,7 @@ export async function addNewFeedback(feedbackUserID, feedbackTitle, feedbackDate
 }
 
 export async function fetchFeedbacksSorted() {
-  const qry = query(collection(db, 'feedbacks'), orderBy('date'));
+  const qry = query(collection(db, 'feedbacks'), orderBy('date', 'desc'));
 
   let Mycollection = await getDocs(qry);
   let arr = [];
@@ -369,7 +403,7 @@ export async function fetchFeedbacksSorted() {
     let elementWithID = element.data();
     elementWithID["id"] = element.id //add ID to JSON
     //convert Timestamp to Date:
-    element.data().date = new Date(element.data().date);
+    element.data().date = timestampToDate(element.data().date);
     arr.push(elementWithID);
   });
 
@@ -407,7 +441,7 @@ export async function addNewExportRecord(exportUserID, exportDropAreaID, exportD
 
 }
 
-export function addNewDeleteRecord(recordUserID, recordDate, recordArray) {
+export async function addNewDeleteRecord(recordUserID, recordDate, recordArray) {
   let recordMap = convertJsonArrayToMap(recordArray);
   // const recordsRef = collection(db, 'importGoodsRecord');
 

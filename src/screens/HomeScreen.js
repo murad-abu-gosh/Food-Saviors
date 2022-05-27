@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   Modal,
@@ -12,9 +12,22 @@ import {
 import Background from "../components/Background";
 import Logo from "../components/Logo";
 import { auth } from "../config";
+import { addNewImportRecord, fetchItemsSorted } from "../config/database_interface";
+
+function testFun() {
+  let recArray = [ {amount : 15 , id : "ccIPreOPjMT4i6XkbwRn"}]
+  addNewImportRecord(auth.currentUser.uid, new Date(), recArray)
+}
 
 export default function HomeScreen({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
+
+  // useEffect(() => {
+  //   // write your code here, it's like componentWillMount
+  //   fetchItemsSorted().then((result) => {
+  //     CreateItemsCard(result);
+  //   });
+  // }, []);
   return (
     <Background>
       {/* <BackButton goBack={navigation.goBack} /> */}
@@ -106,6 +119,13 @@ export default function HomeScreen({ navigation }) {
 
         <TouchableOpacity
           onPress={() => navigation.navigate("Feedback")}
+          style={styles.appButtonContainer}
+        >
+          <Text style={styles.appButtonText}>משובים</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => testFun()}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>משובים</Text>
