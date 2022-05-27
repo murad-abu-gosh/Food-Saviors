@@ -175,7 +175,7 @@ export default function ManageVolunteers({ navigation, route }) {
     return (
       <TouchableOpacity activeOpacity={0.8} style={styles.volunteerCardContainer} onLongPress={() => {
 
-        if ((currUserInfo.rank === 0) || (currUserInfo.rank === 1 && item.rank === 2)) {
+        if ((currUserInfo.rank === 0) || (currUserInfo.rank === 1 && item.rank === 2) || (currUserInfo.id === item.id && currUserInfo.rank === 1)) {
           navigation.navigate({ name: "AddVolunteer", params: { tempVolunteerInfo: fullVolunteersInfo[getVolunteerItemIndex(item.id)], isForEdit: true, status: "none" }, merge: true });
 
         } else {

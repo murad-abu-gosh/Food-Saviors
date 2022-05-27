@@ -44,13 +44,9 @@ export default function HomeScreen({ navigation }) {
     }
   }
 
-  React.useEffect(() => {
-
-    console.log(auth.currentUser.uid);
+  const getAndCheckUserInfo = async () => {
 
     fetchDocumentById("users", auth.currentUser.uid).then((userInfoResult) => {
-
-      console.log(currUserInfo);
 
       if(userInfoResult.isActive === false){
 
@@ -60,10 +56,13 @@ export default function HomeScreen({ navigation }) {
         let userJSONObj = {name: userInfoResult.name, image: userInfoResult.image === null? profileDefaultImageUri :  userInfoResult.image, personalID: userInfoResult.personalID, email: userInfoResult.email, phoneNumber: userInfoResult.phoneNumber, rank: userInfoResult.rank};
         
         setCurrUserInfo(() => userJSONObj);
-
-        console.log(currUserInfo);
       }
-    });    
+    }); 
+  }
+
+  React.useEffect(() => {
+
+   getAndCheckUserInfo();
 
   }, []);
 
@@ -112,7 +111,10 @@ export default function HomeScreen({ navigation }) {
       </Modal>
       <TouchableOpacity
         style={styles.profileIconContainer}
-        onPress={() => setModalVisible(true)}
+        onPress={() => {
+          getAndCheckUserInfo();
+          setModalVisible(true);
+        }}
       >
         <Image
           source={require("../assets/profile.png")}
@@ -193,12 +195,14 @@ const styles = StyleSheet.create({
   ProfileScreen: {
     flex: 1,
     backgroundColor: "#ffffff",
+    borderWidth: 3, 
+    borderColor: "#1c6669",
     margin: 40,
     padding: 10,
     borderRadius: 10
   },
   header: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#baead2",
     borderRadius: 10,
     borderWidth: 3, 
     borderColor: "#1c6669"

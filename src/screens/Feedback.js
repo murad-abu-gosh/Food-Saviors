@@ -88,9 +88,6 @@ export default function Feedback({ navigation, route }) {
 
   const getDateStr = (dateObj) => {
 
-    console.log("*********************");
-    console.log(dateObj);
-
     let dateString;
 
     let dd = String(dateObj.getDate()).padStart(2, '0');
@@ -109,6 +106,8 @@ export default function Feedback({ navigation, route }) {
     fetchDocumentById("users", auth.currentUser.uid).then((currUserInfo) => {
 
       setCurrUserInfo(currUserInfo);
+
+      console.log(currUserInfo);
     });
 
 
@@ -198,6 +197,9 @@ export default function Feedback({ navigation, route }) {
 
     return (
       <TouchableOpacity activeOpacity={0.8} style={styles.feedbackCardContainer} onLongPress={() => {
+
+        console.log(currUserInfo.id);
+        console.log(currUserInfo.rank === 0);
 
         if (currUserInfo.id === item.userID || currUserInfo.rank === 0) {
           navigation.navigate({ name: "AddFeedback", params: { tempFeedbackInfo: fullFeedbacksInfo[getFeedbackItemIndex(item.id)], isForEdit: true }, merge: true })

@@ -160,8 +160,9 @@ export async function fetchDocumentById(collectionName, itemID) {
 
   if (docSnap.exists()) {
     // console.log("Document data:", docSnap.data());
-    docSnap.data()["id"] = docSnap.id;
-    return docSnap.data();
+    let elementWithID = docSnap.data();
+    elementWithID["id"] = docSnap.id;
+    return elementWithID;
   } else {
     // doc.data() will be undefined in this case
     console.log("No such document!");
