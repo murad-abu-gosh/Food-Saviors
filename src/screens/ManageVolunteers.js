@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, BackHandler, Image, ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
 
 import Background from "../components/Background";
 
@@ -7,57 +7,143 @@ import BackButton from "../components/BackButton";
 import { FlatList, TouchableOpacity } from "react-native-gesture-handler";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { setStatusBarStyle } from "expo-status-bar";
-import { fetchAllDocuments } from "../config/database_interface";
+import { fetchAllDocuments, fetchDocumentById, fetchUsersSorted } from "../config/database_interface";
+import { auth, Colors } from "../config";
+import { theme } from "../core/theme";
+import OurActivityIndicator from "../components/OurActivityIndicator";
 
 
 export default function ManageVolunteers({ navigation, route }) {
 
   setStatusBarStyle("dark");
 
-  let [volunteeresInfo, setVolunteeresInfo] = useState([{volunteerFullName: "אבו גמל מעאד", volunteerID: "207535311", volunteerEmail: "Muathsoftware@gmail.com", volunteerPhoneNumber: "0585333193", volunteerBirthdayDate: "3/4/2000", volunteerType: "מתנדב", volunteerImageUri: Image.resolveAssetSource(require("../assets/avatar.png")).uri }])
+  const profileDefaultImageUri = Image.resolveAssetSource(require("../assets/profile_default_image.png")).uri;
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [fullVolunteersInfo, setFullVolunteersInfo] = useState([]);
+
+  let [volunteeresInfo, setVolunteeresInfo] = useState([{ volunteerFullName: "אבו גמל מעאד", volunteerID: "207535311", volunteerEmail: "Muathsoftware@gmail.com", volunteerPhoneNumber: "0585333193", volunteerType: "מתנדב", volunteerImageUri: Image.resolveAssetSource(require("../assets/avatar.png")).uri }])
+
+  const [currUserInfo, setCurrUserInfo] = useState();
+
+  const updateListBySearch = (searchString) => {
+
+    searchString = searchString.toLowerCase().trim();
+
+    setVolunteeresInfo(() => []);
+
+    if (searchString === "") {
+      setVolunteeresInfo(() => [...fullVolunteersInfo]);
+      return;
+    }
+
+    let searcheableFileds = ["name", "personalID", "phoneNumber", "email"];
+    let newVolunteersList = [];
+
+    fullVolunteersInfo.forEach((currVolunterInfoObj) => {
+
+      for (let i = 0; i < searcheableFileds.length; i++) {
+
+        if ((currVolunterInfoObj[searcheableFileds[i]]).toLowerCase().includes(searchString)) {
+
+          newVolunteersList.push(currVolunterInfoObj);
+          break;
+        }
+      }
+
+      if(getUserRankString(currVolunterInfoObj.rank).toLowerCase().includes(searchString)){
+        newVolunteersList.push(currVolunterInfoObj);
+      }
+
+    });
+
+    setVolunteeresInfo(() => [...newVolunteersList]);
+
+  };
 
   const fetchAllVolunteersDocuments = async () => {
 
+    setFullVolunteersInfo([]);
     setVolunteeresInfo([]);
 
-    const volunteersList = await fetchAllDocuments("users");
+    const volunteersList = await fetchUsersSorted(true);
 
     console.log(volunteersList);
 
+    setFullVolunteersInfo(() => [...volunteersList]);
     setVolunteeresInfo(() => [...volunteersList]);
   };
 
   React.useEffect(() => {
-    fetchAllVolunteersDocuments();
-    const willFocusSubscription = navigation.addListener('focus', () => {
-      fetchAllVolunteersDocuments();
+
+    console.log(auth.currentUser.uid);
+
+    fetchDocumentById("users", auth.currentUser.uid).then((currUserInfo) => {
+
+      setCurrUserInfo(currUserInfo);
     });
 
-    return willFocusSubscription;
+
+    fetchAllVolunteersDocuments().then(() => {
+
+      setIsLoading(() => false);
+    });
+
+    
+
   }, []);
 
 
-  // React.useEffect(() => {
-  //   if (route.params?.tempVolunteerInfo) {
-      
-  //     let newVolunteerInfo = route.params?.tempVolunteerInfo;
 
-  //     if(route.params?.isForEdit){
 
-  //       volunteeresInfo[getVolunteerItemIndex(newVolunteerInfo.volunteerID)] = newVolunteerInfo;
+  React.useEffect(() => {
+    if (route.params?.status) {
 
-  //     } else {
-  //       setVolunteeresInfo([...volunteeresInfo, newVolunteerInfo]);
-  //     }
-      
-  //   }
-  // }, [route.params?.tempVolunteerInfo]);
+      console.log(route.params);
+
+      let status = route.params?.status;
+
+      switch (status) {
+
+        case "updated":
+          let updatedVolunterInfo = route.params?.tempVolunteerInfo;;
+          fullVolunteersInfo.splice(getVolunteerItemIndex(updatedVolunterInfo.id), 1, updatedVolunterInfo);
+          setFullVolunteersInfo(() => fullVolunteersInfo);
+          updateListBySearch("");
+          console.log("Updated");
+          navigation.setParams({ status: "none" })
+          break;
+
+        case "created":
+          let newVolunteerInfo = route.params?.tempVolunteerInfo;
+          fullVolunteersInfo.push(newVolunteerInfo);
+          setFullVolunteersInfo(() => fullVolunteersInfo);
+          updateListBySearch("");
+          console.log("Created");
+          navigation.setParams({ status: "none" })
+          break;
+
+        case "deleted":
+          fullVolunteersInfo.splice(getVolunteerItemIndex(route.params?.volunteerID), 1);
+          setFullVolunteersInfo(() => fullVolunteersInfo);
+          updateListBySearch("");
+          console.log("deleted");
+          navigation.setParams({ status: "none" })
+          break;
+
+        case "none":
+          break;
+      }
+
+    }
+  }, [route.params?.status]);
 
   const getVolunteerItemIndex = (volunterID) => {
 
-    for(let currIndex = 0; currIndex < volunteeresInfo.length; currIndex++) {
-      
-      if(volunteeresInfo[currIndex].id === volunterID){
+    for (let currIndex = 0; currIndex < fullVolunteersInfo.length; currIndex++) {
+
+      if (fullVolunteersInfo[currIndex].id === volunterID) {
         return currIndex;
       }
     }
@@ -67,79 +153,95 @@ export default function ManageVolunteers({ navigation, route }) {
 
   const getUserRankString = (userRank) => {
 
-    switch(userRank){
+    switch (userRank) {
 
       case 0:
-        return "Head Admin";
+        return "אחראי/ת המערכת";
 
-      case 1:
-        return "Admin";
+        case 1:
+          return "אדמין/ת";
 
       case 2:
-        return "volunteer";
+          return "מתנדב/ת";
 
       default:
         return "No Type";
 
-    }    
+    }
   }
 
   const getListRenderItem = (item) => {
 
     return (
-    <TouchableOpacity activeOpacity={0.8} style={styles.volunteerCardContainer} onPress={() => navigation.navigate({name: "AddVolunteer", params: {tempVolunteerInfo: volunteeresInfo[getVolunteerItemIndex(item.id)], isForEdit: true}, merge: true})}>
+      <TouchableOpacity activeOpacity={0.8} style={styles.volunteerCardContainer} onLongPress={() => {
 
-      <Image style={styles.volunteerImageStyle} source={{ uri: item.image }} />
+        if ((currUserInfo.rank === 0) || (currUserInfo.rank === 1 && item.rank === 2)) {
+          navigation.navigate({ name: "AddVolunteer", params: { tempVolunteerInfo: fullVolunteersInfo[getVolunteerItemIndex(item.id)], isForEdit: true, status: "none" }, merge: true });
+
+        } else {
+
+          return;
+        }
+      }
+      }>
+
+        <Image resizeMode={"cover"} style={styles.volunteerImageStyle} source={{ uri: item.image === null? profileDefaultImageUri :  item.image}} />
 
 
 
-      <View style={styles.volunteerInfoContainer}> 
+        <View style={styles.volunteerInfoContainer}>
 
-        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>שם: </Text>{item.name}</Text>
-        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>ת.ז: </Text>{item.personalID}</Text>
-        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>תל״מ: </Text>{item.birthDate}</Text>
-        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>טל״ס: </Text>{item.phoneNumber}</Text>
-        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>דוא״ל: </Text>{item.email}</Text>
-        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>סוג משתמש: </Text>{getUserRankString(item.rank)}</Text>
+          <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>שם: </Text>{item.name}</Text>
+          <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>ת.ז: </Text>{item.personalID}</Text>
+          <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>טל״ס: </Text>{item.phoneNumber}</Text>
+          <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>דוא״ל: </Text>{item.email}</Text>
+          <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>סוג משתמש: </Text>{getUserRankString(item.rank)}</Text>
 
 
-      </View>
+        </View>
 
-    </TouchableOpacity>
+      </TouchableOpacity >
     );
   }
 
   return (
 
-    <Background styleEdit={styles.backgroundEdit}>
+    <ImageBackground source={require("../assets/background_dot.png")} resizeMode="repeat" style={styles.background}>
+
+      {isLoading && <OurActivityIndicator/>}
 
       <BackButton goBack={navigation.goBack} />
 
-      <FlatList keyExtractor={(item, index) => index} showsVerticalScrollIndicator={false} style={styles.flatListStyle} data={volunteeresInfo} renderItem={({ item }) => { return getListRenderItem(item) }} />
+      <View style={styles.searchAndListContainer}>
+        <TextInput style={styles.infoTextInputStyle} onChangeText={(searchString) => { updateListBySearch(searchString) }} placeholder="חיפוש"></TextInput>
+
+        <FlatList keyExtractor={(item, index) => item.id} showsVerticalScrollIndicator={false} style={styles.flatListStyle} data={volunteeresInfo} renderItem={({ item }) => { return getListRenderItem(item) }} />
+      </View>
+
+      <View style={styles.addButtonStyle}><TouchableOpacity style={styles.toucheableAddBStyle} onPress={() => navigation.navigate({ name: "AddVolunteer", params: { isForEdit: false, status: "none" }, merge: true })}><Text style={styles.addButtonTextStyle}>+</Text></TouchableOpacity></View>
 
 
-      <View style={styles.addButtonStyle}><TouchableOpacity style={styles.toucheableAddBStyle} onPress={() => navigation.navigate({name: "AddVolunteer", params: {isForEdit: false}, merge: true})}><Text style={styles.addButtonTextStyle}>+</Text></TouchableOpacity></View>
-
-
-    </Background>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
 
-  backgroundEdit: {
-
+  background: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: theme.colors.surface,
+    flex: 1,
     paddingLeft: 7,
     paddingRight: 7,
-    paddingTop: 0,
-    paddingBottom: 0,
-    flexDirection: 'column'
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   flatListStyle: {
 
-    marginTop: getStatusBarHeight() + 24 + 10 + 10,
-    width: "100%"
+    width: "100%",
   },
 
   addButtonStyle: {
@@ -156,7 +258,7 @@ const styles = StyleSheet.create({
     borderColor: "#006d77",
     borderWidth: 3,
     elevation: 3,
-    
+
   },
 
   addButtonTextStyle: {
@@ -183,28 +285,44 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     alignItems: 'center',
     marginBottom: 5,
-},
+  },
 
-volunteerImageStyle: {
+  volunteerImageStyle: {
     borderRadius: 10,
     borderColor: "#1c6669",
     borderWidth: 2,
     width: "30%",
     height: 100,
     marginLeft: "3%"
-},
+  },
 
-volunteerInfoContainer: {
+  volunteerInfoContainer: {
     alignItems: "flex-end",
     width: "67%",
 
-},
+  },
 
-infoTitleTextStyle: {
+  infoTitleTextStyle: {
 
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "bold"
-}
+  },
+
+  searchAndListContainer: {
+    flexDirection: "column",
+    alignItems: "center",
+    marginTop: getStatusBarHeight() + 24,
+  },
+
+  infoTextInputStyle: {
+    marginBottom: 10,
+    fontSize: 20,
+    textAlign: "center",
+    minWidth: "75%",
+    borderColor: "#1c6669",
+    borderBottomWidth: 2,
+    padding: 7
+  },
 
 });
 
