@@ -18,12 +18,12 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     top: 10 + getStatusBarHeight(),
-    left: 4,
+    left: 10,
     zIndex: 1,
     elevation: 1
   },
   image: {
-    width: 24,
-    height: 24,
+    width: 30,
+    height: 30,
   },
 })

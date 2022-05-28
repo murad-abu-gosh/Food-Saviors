@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { Text } from "react-native-paper";
+import { ActivityIndicator, ImageBackground, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Modal, Text } from "react-native-paper";
 import Background from "../components/Background";
 import Logo from "../components/Logo";
 import Header from "../components/Header";
@@ -12,6 +12,7 @@ import { emailValidator } from "../helpers/emailValidator";
 import { passwordValidator } from "../helpers/passwordValidator";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, Colors } from "../config";
+import { getUserByEmail } from "../config/database_interface";
 
 
 export default function LoginScreen({ navigation }) {
@@ -19,7 +20,16 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState({ value: "", error: "" });
   const [errorState, setErrorState] = useState("");
 
+  const [alertTitle, setAlertTitle] = useState("שגיאה");
+  const [alertContent, setAlertContent] = useState("קרתה שגיאה");
+  const [isAleretVisible, setIsAlertVisible] = useState(false);
+
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const onLoginPressed = () => {
+
+    setIsProcessing(true);
+
     const emailError = emailValidator(email.value);
     const passwordError = passwordValidator(password.value);
     if (emailError || passwordError) {
@@ -27,18 +37,44 @@ export default function LoginScreen({ navigation }) {
       setPassword({ ...password, error: passwordError });
       return;
     }
-    signInWithEmailAndPassword(auth, email.value, password.value).catch(error =>
-      setErrorState(error.message)
-    );
+
+    getUserByEmail(email.value.toLowerCase()).then((currUserInfo) => {
+
+      console.log("$$$$$$$$$$$$$$");
+      console.log(currUserInfo);
+
+      if (currUserInfo === undefined || currUserInfo.isActive === false) {
+
+        setAlertTitle("שגיאה");
+        setAlertContent("* נא לוודא דוא״ל וסיסמה");
+        setIsProcessing(false);
+        setIsAlertVisible(true);
+
+      } else {
+
+        signInWithEmailAndPassword(auth, email.value, password.value).catch(error => {
+          setErrorState(error.message);
+
+          setAlertTitle("שגיאה");
+          setAlertContent("* נא לוודא דוא״ל וסיסמה");
+          setIsProcessing(false);
+          setIsAlertVisible(true);
+        });
+      }
+    });
+
+
+
+
   };
 
   return (
-    <Background>
+    <ImageBackground source={require("../assets/background_dot.png")} resizeMode="repeat" style={styles.background}>
       {/* <BackButton goBack={navigation.goBack} /> */}
       <Logo />
-      <Header>מצילת מזון</Header>
+      <Header>מצילות המזון</Header>
       <TextInput
-        label="Email"
+        label="דוא״ל"
         returnKeyType="next"
         value={email.value}
         onChangeText={(text) => setEmail({ value: text, error: "" })}
@@ -50,7 +86,7 @@ export default function LoginScreen({ navigation }) {
         keyboardType="email-address"
       />
       <TextInput
-        label="Password"
+        label="סיסמה"
         returnKeyType="done"
         value={password.value}
         onChangeText={(text) => setPassword({ value: text, error: "" })}
@@ -66,19 +102,58 @@ export default function LoginScreen({ navigation }) {
         </TouchableOpacity>
       </View>
       <Button style={styles.button} mode="contained" onPress={onLoginPressed}>
-        Login
+        כניסה
       </Button>
-      {/* <View style={styles.row}>
-        <Text>Don't have an account? </Text>
-        <TouchableOpacity onPress={() => navigation.replace("RegisterScreen")}>
-          <Text style={styles.link}>Sign up</Text>
-        </TouchableOpacity>
-      </View> */}
-    </Background>
+
+
+      <Modal visible={isAleretVisible}>
+
+        <View style={styles.alertContainer}>
+
+          <View style={styles.alertContentContainer}>
+
+            <Text style={styles.alertTitleTextStyle}>{alertTitle}</Text>
+
+            <Text style={styles.alertContentText}>{alertContent}</Text>
+
+            <TouchableOpacity style={styles.alertCloseButtonStyle} onPress={() => setIsAlertVisible(false)}><Text style={styles.alertButtonTextStyle}>סגור</Text></TouchableOpacity>
+
+          </View>
+
+        </View>
+
+      </Modal>
+
+      <Modal visible={isProcessing}>
+
+        <View style={styles.processingAlertContainer}>
+
+          <View style={styles.processingAlertContentContainer}>
+
+            <Text style={styles.processingAlertTextStyle}>הפעולה מתבצעת ...</Text>
+
+            <ActivityIndicator size="large" color={Colors.primary} />
+
+          </View>
+
+        </View>
+
+      </Modal>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+
+  background: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: theme.colors.surface,
+    padding: 20,
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+},
   forgotPassword: {
     width: "100%",
     alignItems: "flex-end",
@@ -98,5 +173,89 @@ const styles = StyleSheet.create({
   link: {
     fontWeight: "bold",
     color: theme.colors.primary
+  },
+
+
+  alertContainer: {
+    flexDirection: "column",
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignContent: "center",
+    alignItems: "center",
+  },
+
+  alertContentContainer: {
+
+    width: "70%",
+    backgroundColor: "white",
+    borderColor: "#ff3333",
+    borderWidth: 3,
+    borderRadius: 7,
+    padding: 10
+  },
+
+  alertTitleTextStyle: {
+    fontSize: 25,
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 15,
+    color: "#ff3333",
+
+  },
+
+  alertContentText: {
+
+    textAlign: "right",
+    fontSize: 16,
+    marginBottom: 10,
+    color: "#ff3333",
+    paddingRight: 8
+  },
+
+  alertCloseButtonStyle: {
+
+    width: "70%",
+    height: 50,
+    backgroundColor: "white",
+    borderColor: "#ff3333",
+    borderWidth: 2,
+    borderRadius: 7,
+    justifyContent: "center",
+    alignItems: "center",
+    alignContent: "center",
+    alignSelf: "center",
+  },
+
+  alertButtonTextStyle: {
+
+    fontSize: 18,
+    color: "#ff3333",
+  },
+
+  processingAlertContainer: {
+    flexDirection: "column",
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignContent: "center",
+    alignItems: "center",
+  },
+
+  processingAlertContentContainer: {
+    flexDirection: "row",
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignContent: "center",
+    alignItems: "center",
+    padding: 20,
+    borderWidth: 3,
+    borderColor: "#1c6669"
+  },
+
+  processingAlertTextStyle: {
+
+    fontSize: 20,
+    marginRight: 15
   }
 });

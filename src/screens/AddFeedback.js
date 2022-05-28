@@ -1,81 +1,109 @@
 import React, { useEffect, useState } from "react";
-import { Image, ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Image, ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import { Modal } from "react-native-paper";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import BackButton from "../components/BackButton";
 import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
-import { auth } from "../config";
-import { addNewFeedback } from "../config/database_interface";
+import { auth, Colors } from "../config";
+import { addNewFeedback, deleteDocumentById, updateDocumentById } from "../config/database_interface";
 import { theme } from "../core/theme";
 
 
 
 
 export default function AddFeedback({ navigation, route }) {
- 
-    const [userID, setUserID] =  useState(auth.currentUser.uid);
-    const [feedbackID, setID] = useState();
-    const [feedbackTitle, setTitle] = useState();   
-    const [feedbackUserInfo, setUserInfo] = useState();
-    const [feedbackContent, setContent] = useState();
+
+    const [userID, setUserID] = useState(auth.currentUser.uid);
+    const [feedbackID, setID] = useState("");
+    const [feedbackTitle, setTitle] = useState("");
+    const [feedbackContent, setContent] = useState("");
     const [isForEdit, setIsForEdit] = useState(route.params?.isForEdit);
 
+    const [alertTitle, setAlertTitle] = useState("שגיאה");
+    const [alertContent, setAlertContent] = useState("קרתה שגיאה");
+    const [isAleretVisible, setIsAlertVisible] = useState(false);
 
-    const getTodayDateStr = () => {
+    const [isProcessing, setIsProcessing] = useState(false);
 
-        let today = new Date();
-        let dd = String(today.getDate()).padStart(2, '0');
-        let mm = String(today.getMonth() + 1).padStart(2, '0');
-        let yyyy = today.getFullYear();
 
-        today = dd + '-' + mm + '-' + yyyy;
 
-        return today;
-    };
 
-    const [feedbackDate, setDate] = useState(getTodayDateStr());
+    const [feedbackDate, setDate] = useState();
 
-    
+
     useEffect(() => {
 
         if (route.params?.tempFeedbackInfo) {
 
             let currFeedbackInfo = route.params?.tempFeedbackInfo;
 
+            setUserID(currFeedbackInfo.userID);
+            setID(currFeedbackInfo.id);
             setTitle(currFeedbackInfo.title);
-            setUserInfo(route.params?.userInfo);
+            setDate(currFeedbackInfo.date);
             setContent(currFeedbackInfo.content);
         }
 
         setIsForEdit(route.params?.isForEdit);
 
     }, [route.params?.tempFeedbackInfo]);
-    
 
-    
+
+
 
     const onSaveButtonPressed = () => {
 
-        if(isForEdit){
+        if (!isValidInfo()) {
+            return;
+        } else {
 
-            let updatedFeedbackJSON = {
-                "userID": userID,
-                "title": feedbackTitle,
-                "date": feedbackDate,
-                "content": feedbackContent
-              }
+            setIsProcessing(true);
+        }
+
+        let updatedFeedbackJSON = {
+            "userID": isForEdit ? userID : auth.currentUser.uid,
+            "title": feedbackTitle.trim(),
+            "date": isForEdit ? feedbackDate : new Date(),
+            "content": feedbackContent.trim()
+        }
+
+        if (isForEdit) {
+
+            console.log(userID + " " + feedbackID + " " + feedbackTitle + " " + updatedFeedbackJSON.date + " " + feedbackContent);
 
             updateDocumentById("feedbacks", feedbackID, updatedFeedbackJSON).then(() => {
 
-                navigation.navigate({ name: 'Feedback' });
+
+                updatedFeedbackJSON["id"] = feedbackID;
+                navigation.navigate({ name: 'Feedback', params: { tempFeedbackInfo: updatedFeedbackJSON, status: "updated" } });
+            }).catch(() => {
+
+                setAlertTitle("שגיאה בהעלאת הנתונים");
+                setAlertContent("* נא לבדוק שיש חיבור לאינטרנט או לנסות מאוחר יותר");
+                setIsProcessing(false);
+                setIsAlertVisible(true);
+
+                console.log("update failed");
             });
+
         } else {
 
-            console.log(userID + " " + feedbackTitle + " " + feedbackDate + " " + feedbackContent);
-            
-            addNewFeedback(userID, feedbackTitle, feedbackDate, feedbackContent).then(() => {
+            console.log(userID + " " + feedbackTitle + " " + updatedFeedbackJSON.date + " " + feedbackContent);
 
-                navigation.navigate({ name: 'Feedback' });
+            addNewFeedback(auth.currentUser.uid, feedbackTitle, updatedFeedbackJSON.date, feedbackContent).then((newFeedbackID) => {
+
+
+                updatedFeedbackJSON["id"] = newFeedbackID;
+                navigation.navigate({ name: 'Feedback', params: { tempFeedbackInfo: updatedFeedbackJSON, status: "created" } });
+            }).catch(() => {
+
+                setAlertTitle("שגיאה בהעלאת הנתונים");
+                setAlertContent("* נא לבדוק שיש חיבור לאינטרנט או לנסות מאוחר יותר");
+                setIsProcessing(false);
+                setIsAlertVisible(true);
+
+                console.log("create failed");
             });
         }
 
@@ -83,13 +111,61 @@ export default function AddFeedback({ navigation, route }) {
 
     const onDeleteButtonPressed = () => {
 
+        Alert.alert(
+            'האם אתה בטוח',
+            'האם אתה בטוח שאתה רוצה למחוק את המשוב הזה?',
+            [
+                {
+                    text: 'כן', onPress: () => {
 
+                        setIsProcessing(true);
+
+                        deleteDocumentById("feedbacks", feedbackID).then(() => {
+
+
+                            navigation.navigate({ name: 'Feedback', params: { feedbackID: feedbackID, status: "deleted" } });
+
+                        }).catch(() => {
+
+                            setAlertTitle("שגיאה במחיקת הנתונים");
+                            setAlertContent("* נא לבדוק שיש חיבור לאינטרנט או לנסות מאוחר יותר");
+                            setIsProcessing(false);
+                            setIsAlertVisible(true);
+
+                            console.log("delete failed");
+                        });
+
+                    },
+                },
+                { text: 'לא', onPress: () => { }, style: 'cancel' },
+            ]
+        );
     }
 
     const isValidInfo = () => {
 
 
+        let errorsString = "";
 
+        if (feedbackTitle === "") {
+
+            errorsString += "* כותרת המשוב חובה\n";
+        }
+
+        if (feedbackContent === "") {
+
+            errorsString += "* תוכן המשוב חובה\n";
+        }
+
+        if (errorsString !== "") {
+
+            setAlertTitle("שגיאות קלט");
+            setAlertContent(errorsString);
+            setIsAlertVisible(true);
+            return false;
+        }
+
+        return true;
     }
 
 
@@ -97,30 +173,66 @@ export default function AddFeedback({ navigation, route }) {
     return (
 
 
+        <View style={styles.background}>
+            <ImageBackground source={require("../assets/background_dot.png")} resizeMode="repeat" style={styles.background}>
 
-        <ImageBackground source={require("../assets/background_dot.png")} resizeMode="repeat" style={styles.background}>
-
-            <BackButton goBack={navigation.goBack}></BackButton>
+                <BackButton goBack={navigation.goBack}></BackButton>
 
 
-            <KeyboardAvoidingWrapper>
+                <KeyboardAvoidingWrapper>
 
-                <View style={styles.volunteerInfoInputContainer}>
+                    <View style={styles.volunteerInfoInputContainer}>
 
-                    <TextInput style={styles.infoTextInputStyle} value={feedbackTitle} onChangeText={(value) => setTitle(value)} placeholder="כותרת המשוב" keyboardType="name-phone-pad"></TextInput>
-                    <TextInput style={styles.infoTextInputStyle} value={feedbackContent} onChangeText={(value) => setContent(value)} placeholder="תוכן המשוב" keyboardType="name-phone-pad" multiline={true}></TextInput>
+                        <TextInput style={styles.infoTextInputStyle} value={feedbackTitle} onChangeText={(value) => setTitle(value)} placeholder="כותרת המשוב" keyboardType="name-phone-pad"></TextInput>
+                        <TextInput maxHeight={200} numberOfLines={3} style={styles.infoTextInputStyle} value={feedbackContent} onChangeText={(value) => setContent(value)} placeholder="תוכן המשוב" keyboardType="name-phone-pad" multiline={true}></TextInput>
+
+                    </View>
+
+                </KeyboardAvoidingWrapper>
+
+
+
+                <TouchableOpacity style={styles.saveButtonStyle} onPress={onSaveButtonPressed}><Text style={styles.saveButtonTextStyle}>שמור</Text></TouchableOpacity>
+
+                <TouchableOpacity style={[styles.deleteButtonStyle, { display: isForEdit ? "flex" : "none" }]} onPress={onDeleteButtonPressed}><Text style={styles.deleteButtonTextStyle}>הוסיר</Text></TouchableOpacity>
+
+            </ImageBackground>
+
+            <Modal visible={isAleretVisible}>
+
+                <View style={styles.alertContainer}>
+
+                    <View style={styles.alertContentContainer}>
+
+                        <Text style={styles.alertTitleTextStyle}>{alertTitle}</Text>
+
+                        <Text style={styles.alertContentText}>{alertContent}</Text>
+
+                        <TouchableOpacity style={styles.alertCloseButtonStyle} onPress={() => setIsAlertVisible(false)}><Text style={styles.alertButtonTextStyle}>סגור</Text></TouchableOpacity>
+
+                    </View>
 
                 </View>
 
-            </KeyboardAvoidingWrapper>
+            </Modal>
 
+            <Modal visible={isProcessing}>
 
+                <View style={styles.processingAlertContainer}>
 
-            <TouchableOpacity style={styles.saveButtonStyle} onPress={onSaveButtonPressed}><Text style={styles.saveButtonTextStyle}>שמור</Text></TouchableOpacity>
+                    <View style={styles.processingAlertContentContainer}>
 
-            <TouchableOpacity style={[styles.deleteButtonStyle, { display: isForEdit ? "flex" : "none" }]}><Text style={styles.deleteButtonTextStyle}>הוסיר</Text></TouchableOpacity>
+                        <Text style={styles.processingAlertTextStyle}>הפעולה מתבצעת ...</Text>
 
-        </ImageBackground>
+                        <ActivityIndicator size="large" color={Colors.primary} />
+
+                    </View>
+
+                </View>
+
+            </Modal>
+
+        </View>
 
     );
 
@@ -188,6 +300,90 @@ const styles = StyleSheet.create({
 
         color: "white",
         fontSize: 25
+    },
+
+
+    alertContainer: {
+        flexDirection: "column",
+        width: "100%",
+        height: "100%",
+        justifyContent: "center",
+        alignContent: "center",
+        alignItems: "center",
+    },
+
+    alertContentContainer: {
+
+        width: "70%",
+        backgroundColor: "white",
+        borderColor: "#ff3333",
+        borderWidth: 3,
+        borderRadius: 7,
+        padding: 10
+    },
+
+    alertTitleTextStyle: {
+        fontSize: 25,
+        fontWeight: "700",
+        textAlign: "center",
+        marginBottom: 15,
+        color: "#ff3333",
+
+    },
+
+    alertContentText: {
+
+        textAlign: "right",
+        fontSize: 16,
+        marginBottom: 10,
+        color: "#ff3333",
+        paddingRight: 8
+    },
+
+    alertCloseButtonStyle: {
+
+        width: "70%",
+        height: 50,
+        backgroundColor: "white",
+        borderColor: "#ff3333",
+        borderWidth: 2,
+        borderRadius: 7,
+        justifyContent: "center",
+        alignItems: "center",
+        alignContent: "center",
+        alignSelf: "center",
+    },
+
+    alertButtonTextStyle: {
+
+        fontSize: 18,
+        color: "#ff3333",
+    },
+
+    processingAlertContainer: {
+        flexDirection: "column",
+        width: "100%",
+        height: "100%",
+        justifyContent: "center",
+        alignContent: "center",
+        alignItems: "center",
+    },
+
+    processingAlertContentContainer: {
+        flexDirection: "row",
+        backgroundColor: "white",
+        justifyContent: "center",
+        alignContent: "center",
+        alignItems: "center",
+        padding: 20,
+        borderWidth: 3,
+        borderColor: "#1c6669"
+    },
+
+    processingAlertTextStyle: {
+
+        fontSize: 20,
+        marginRight: 15
     }
 
 });

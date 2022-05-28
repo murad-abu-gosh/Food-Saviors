@@ -30,12 +30,15 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: theme.colors.surface,
-    tintColor: theme.colors.primary
+    tintColor: theme.colors.primary,
+
+    
   },
   description: {
-    fontSize: 13,
+    fontSize: 15,
     color: theme.colors.secondary,
     paddingTop: 8,
+    textAlign: "right"
   },
   error: {
     fontSize: 13,
