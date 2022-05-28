@@ -14,7 +14,7 @@ import Background from "../components/Background";
 import Logo from "../components/Logo";
 import { auth } from "../config";
 import { fetchDocumentById } from "../config/database_interface";
-import '../config/GlobalData.js'
+
 
 export default function HomeScreen({ navigation }) {
 
