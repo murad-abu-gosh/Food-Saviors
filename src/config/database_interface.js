@@ -180,7 +180,7 @@ export async function fetchDocumentById(collectionName, itemID) {
  * Adds new Drop Area entry to database. Returns the document's ID
  * @returns 
  */
-export async function addNewDropArea(areaName, areaHoodName, areaAddress, isMainStorageValue) {
+export async function addNewDropArea(areaName, areaHoodName, areaAddress, isMainStorageValue = false) {
   // const areasRef = collection(db, 'dropAreas');
 
   const docRef = await addDoc(collection(db, 'dropAreas'), {
