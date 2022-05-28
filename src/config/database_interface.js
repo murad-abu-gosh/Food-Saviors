@@ -59,7 +59,7 @@ export async function updateItem(itemID, imageURI, updated_fields) {
   }
   const docSnap = await getDoc(itemRef);
 
-  if ( docSnap.data()["imageName"] !== null){
+  if (docSnap.data()["imageName"] !== null) {
     deleteFileFromStorage(docSnap.data()["imageName"]); //delete old image
   }
 
@@ -189,14 +189,14 @@ export async function fetchDocumentById(collectionName, itemID) {
  * Adds new Drop Area entry to database. Returns the document's ID
  * @returns drop area ID
  */
- export async function addNewDropArea(areaName, areaHoodName, areaAddress, isMainStorageValue = false) {
+export async function addNewDropArea(areaName, areaHoodName, areaAddress, isMainStorageValue = false) {
   // const areasRef = collection(db, 'dropAreas');
 
   const docRef = await addDoc(collection(db, 'dropAreas'), {
     name: areaName,
     address: areaAddress,
     hoodName: areaHoodName,
-    isMainStorage : isMainStorageValue
+    isMainStorage: isMainStorageValue
   }).catch(alert);
 
   return docRef.id;
@@ -216,7 +216,7 @@ export async function fetchDropAreasSorted(params) {
   });
 
   return arr;
-  
+
 }
 
 /**
@@ -238,7 +238,7 @@ export async function addNewImportRecord(recordUserID, recordDate, recordArray) 
 
   console.log("Added new import record: ", recordMap);
 
-  updateItemsAmountsFromRecord(recordMap, 1);
+  await updateItemsAmountsFromRecord(recordMap, 1);
   return docRef.id;
 
 }
@@ -258,7 +258,7 @@ export async function fetchImportRecordsSorted() {
   });
 
   return arr;
-  
+
 }
 
 function convertJsonArrayToMap(jsonArray) {
@@ -273,20 +273,20 @@ function convertJsonArrayToMap(jsonArray) {
 //=============================================================================================
 
 
-export async function getUserByEmail(userEmail) {
-  let qry = null;
-  qry = query(collection(db, 'users'), where('email','==', userEmail));
-  let Mycollection = await getDocs(qry);
+// export async function getUserByEmail(userEmail) {
+//   let qry = null;
+//   qry = query(collection(db, 'users'), where('email','==', userEmail));
+//   let Mycollection = await getDocs(qry);
 
-  let currentUser;
+//   let currentUser;
 
-  Mycollection.forEach(element => {
-    
-    currentUser = element.data();
-  });
+//   Mycollection.forEach(element => {
 
-  return currentUser;
-}
+//     currentUser = element.data();
+//   });
+
+//   return currentUser;
+// }
 
 /**
  * 
@@ -379,10 +379,10 @@ export async function updateUser(userID, updated_fields) {
   }
 
 
-  if(docSnap.data()["imageName"] !== null){
+  if (docSnap.data()["imageName"] !== null) {
     deleteFileFromStorage(docSnap.data()["imageName"]); //delete old image
   }
-  
+
   const imageRef = await uploadImageAsync(updated_fields.image);
   updated_fields.image = imageRef.URL;
   updated_fields.imageName = imageRef.name;
@@ -392,20 +392,20 @@ export async function updateUser(userID, updated_fields) {
 }
 
 
-export async function fetchDropAreasSorted() {
-  const qry = query(collection(db, 'dropAreas'), orderBy('name'));
+// export async function fetchDropAreasSorted() {
+//   const qry = query(collection(db, 'dropAreas'), orderBy('name'));
 
-  let Mycollection = await getDocs(qry);
-  let arr = [];
-  Mycollection.forEach(element => {
-    let elementWithID = element.data();
-    elementWithID["id"] = element.id //add ID to JSON
-    arr.push(elementWithID);
-  });
+//   let Mycollection = await getDocs(qry);
+//   let arr = [];
+//   Mycollection.forEach(element => {
+//     let elementWithID = element.data();
+//     elementWithID["id"] = element.id //add ID to JSON
+//     arr.push(elementWithID);
+//   });
 
-  return arr;
-  
-}
+//   return arr;
+
+// }
 
 /**
  * Fetches users data sorted by name in an array. Attaches userID as a field.
@@ -436,7 +436,7 @@ export async function fetchUsersSorted(onlyActive) {
 
 export async function getUserByEmail(userEmail) {
   let qry = null;
-  qry = query(collection(db, 'users'), where('email','==', userEmail));
+  qry = query(collection(db, 'users'), where('email', '==', userEmail));
   let Mycollection = await getDocs(qry);
 
   console.log(userEmail);
@@ -444,8 +444,8 @@ export async function getUserByEmail(userEmail) {
   let currentUser;
 
   Mycollection.forEach(element => {
-    
-    
+
+
     currentUser = element.data();
 
     console.log(currentUser);
@@ -512,7 +512,7 @@ export async function addNewExportRecord(exportUserID, exportDropAreaID, exportD
     itemToAmount: itemToAmountMap
   }).catch(alert);
 
-  updateItemsAmountsFromRecord(itemToAmountMap, 2);
+  await updateItemsAmountsFromRecord(itemToAmountMap, 2);
 
   // updateDocumentById("exportGoodsRecords", docRef.id, { "id": docRef.id });
   return docRef.id;
@@ -530,7 +530,7 @@ export async function addNewDeleteRecord(recordUserID, recordDate, recordArray) 
   }).catch(alert);
   // updateDocumentById("importGoodsRecord", docRef.id, { "id": docRef.id });
 
-  updateItemsAmountsFromRecord(recordMap, -1);
+  await updateItemsAmountsFromRecord(recordMap, -1);
   return docRef.id;
 }
 
@@ -565,7 +565,7 @@ export async function fetchWasteRecordsSorted() {
   });
 
   return arr;
-  
+
 }
 
 
