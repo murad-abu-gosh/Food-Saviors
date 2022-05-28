@@ -6,7 +6,7 @@ import BackButton from "../components/BackButton";
 import { FlatList, TouchableOpacity } from "react-native-gesture-handler";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { useIsFocused } from "@react-navigation/native";
-import { fetchAllDocuments } from "../config/database_interface";
+import { fetchAllDocuments, fetchDropAreasSorted } from "../config/database_interface";
 import OurActivityIndicator from "../components/OurActivityIndicator";
 import { theme } from "../core/theme";
 
@@ -60,12 +60,19 @@ export default function ManageDropArea({ navigation, route }) {
     setFullDropAreasInfo([]);
     setDropAreasInfo([]);
 
-    const dropAreasList = await fetchAllDocuments("dropAreas");
+    const dropAreasList = await fetchDropAreasSorted();
 
-    console.log(dropAreasList);
+    let dropAreasWithoutMainStorage = [];
 
-    setFullDropAreasInfo(() => [...dropAreasList]);
-    setDropAreasInfo(() => [...dropAreasList]);
+    dropAreasList.forEach((currDropArea) => {
+
+      if(!currDropArea.isMainStorage){
+        dropAreasWithoutMainStorage.push(currDropArea);
+      }
+    });
+
+    setFullDropAreasInfo(() => [...dropAreasWithoutMainStorage]);
+    setDropAreasInfo(() => [...dropAreasWithoutMainStorage]);
   };
 
   React.useEffect(() => {

@@ -173,13 +173,32 @@ export async function fetchDocumentById(collectionName, itemID) {
  * Adds new Drop Area entry to database. Returns the document's ID
  * @returns 
  */
-export async function addNewDropArea(areaName, areaHoodName, areaAddress) {
+// export async function addNewDropArea(areaName, areaHoodName, areaAddress) {
+//   // const areasRef = collection(db, 'dropAreas');
+
+//   const docRef = await addDoc(collection(db, 'dropAreas'), {
+//     name: areaName,
+//     address: areaAddress,
+//     hoodName: areaHoodName
+//   }).catch(alert);
+
+//   return docRef.id;
+
+//   // updateDocumentById("dropAreas", docRef.id, { "id": docRef.id });
+// }
+
+/**
+ * Adds new Drop Area entry to database. Returns the document's ID
+ * @returns 
+ */
+ export async function addNewDropArea(areaName, areaHoodName, areaAddress, isMainStorageValue = false) {
   // const areasRef = collection(db, 'dropAreas');
 
   const docRef = await addDoc(collection(db, 'dropAreas'), {
     name: areaName,
     address: areaAddress,
-    hoodName: areaHoodName
+    hoodName: areaHoodName,
+    isMainStorage : isMainStorageValue
   }).catch(alert);
 
   return docRef.id;
@@ -320,7 +339,20 @@ export async function updateUser(userID, updated_fields) {
 
 }
 
+export async function fetchDropAreasSorted() {
+  const qry = query(collection(db, 'dropAreas'), orderBy('name'));
 
+  let Mycollection = await getDocs(qry);
+  let arr = [];
+  Mycollection.forEach(element => {
+    let elementWithID = element.data();
+    elementWithID["id"] = element.id //add ID to JSON
+    arr.push(elementWithID);
+  });
+
+  return arr;
+  
+}
 
 
 /**

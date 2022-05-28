@@ -18,7 +18,7 @@ export default function AddDropArea({ navigation, route }) {
     const [dropAreaName, setName] = useState("");
     const [dropAreaAddress, setAddress] = useState("");
     const [dropAreaHoodName, setHoodName] = useState("");
-    const [isRemovable, setIsRemovable] = useState(true);
+    const [isMainStorage, setIsMainStorage] = useState(false);
 
     const [alertTitle, setAlertTitle] = useState("שגיאה");
     const [alertContent, setAlertContent] = useState("קרתה שגיאה");
@@ -38,18 +38,8 @@ export default function AddDropArea({ navigation, route }) {
             setName(currDropAreaInfo.name);
             setHoodName(currDropAreaInfo.hoodName);
             setAddress(currDropAreaInfo.address);
+            setIsMainStorage(currDropAreaInfo.isMainStorage);
 
-            if(currDropAreaInfo.isRemovable !== undefined){
-
-                
-
-                if (currDropAreaInfo.isRemovable === false){
-
-                    setIsRemovable(() => false);
-                } else {
-
-                }
-            }
         }
 
         setIsForEdit(route.params?.isForEdit);
@@ -73,13 +63,10 @@ export default function AddDropArea({ navigation, route }) {
             "name": dropAreaName.trim(),
             "hoodName": dropAreaHoodName.trim(),
             "address": dropAreaAddress.toLowerCase().trim(),
+            "isMainStorage": false
         };
 
         if (isForEdit) {
-
-            if(!isRemovable){
-                updatedDropAreaJSON["isRemovable"] = false;
-            }
 
             updateDocumentById("dropAreas", dropAreaID, updatedDropAreaJSON).then(() => {
 
@@ -98,7 +85,7 @@ export default function AddDropArea({ navigation, route }) {
 
         } else {
 
-            addNewDropArea(dropAreaName, dropAreaHoodName, dropAreaAddress).then((newDropAreaID) => {
+            addNewDropArea(dropAreaName, dropAreaHoodName, dropAreaAddress, isMainStorage).then((newDropAreaID) => {
 
                 console.log("Hello: " + newDropAreaID);
                 updatedDropAreaJSON["id"] = newDropAreaID;
@@ -154,7 +141,7 @@ export default function AddDropArea({ navigation, route }) {
     const isValidInfo = () => {
 
         let errorsString = "";
-       
+
 
         if (dropAreaName === "") {
 
@@ -166,7 +153,7 @@ export default function AddDropArea({ navigation, route }) {
             errorsString += "* שם השכונה חובה\n";
         }
 
-        if (errorsString !== ""){
+        if (errorsString !== "") {
 
             setAlertTitle("שגיאות קלט");
             setAlertContent(errorsString);
@@ -205,7 +192,7 @@ export default function AddDropArea({ navigation, route }) {
 
                 <TouchableOpacity style={styles.saveButtonStyle} onPress={onSaveButtonPressed}><Text style={styles.saveButtonTextStyle}>שמור</Text></TouchableOpacity>
 
-                <TouchableOpacity style={[styles.deleteButtonStyle, { display: isForEdit && isRemovable? "flex" : "none" }]} onPress={onDeleteButtonPressed}><Text style={styles.deleteButtonTextStyle}>הוסיר</Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.deleteButtonStyle, { display: isForEdit && !isMainStorage ? "flex" : "none" }]} onPress={onDeleteButtonPressed}><Text style={styles.deleteButtonTextStyle}>הוסיר</Text></TouchableOpacity>
 
             </ImageBackground>
 
