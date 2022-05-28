@@ -6,9 +6,9 @@ import Items from "../components/Items";
 
 import {
   fetchItemsSorted,
-  deleteItem,
   addNewItem,
   updateDocumentById,
+  deleteItem,
 } from "../config/database_interface";
 
 import { getStatusBarHeight } from "react-native-status-bar-height";
@@ -177,6 +177,7 @@ export default function ManageItems({ navigation }) {
 
   };
   const deleteItems = (index) => {
+
     Alert.alert(
       'האם אתה בטוח',
       'האם אתה בטוח שאתה רוצה למחוק את המשוב הזה?',

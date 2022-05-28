@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BackHandler,
   Image,
@@ -65,7 +65,6 @@ export default function HomeScreen({ navigation }) {
    getAndCheckUserInfo();
 
   }, []);
-
 
   return (
     <Background>
@@ -163,6 +162,13 @@ export default function HomeScreen({ navigation }) {
 
         <TouchableOpacity
           onPress={() => navigation.navigate("Feedback")}
+          style={styles.appButtonContainer}
+        >
+          <Text style={styles.appButtonText}>משובים</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => testFun()}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>משובים</Text>
