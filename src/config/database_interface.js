@@ -12,8 +12,10 @@ import { useState } from "react";
  * @param itemAvgWeight
  * @param itemCurrentAmount
  */
+
 export async function addNewItem(itemName, itemImgUri, itemAvgWeight, itemCurrentAmount) {
   const imageRef = await uploadImageAsync(itemImgUri);
+
   const docRef = await addDoc(collection(db, 'items'), {
     name: itemName,
     image: imageRef.URL,
@@ -60,6 +62,7 @@ export async function updateItem(itemID, imageURI, updated_fields) {
   if ( docSnap.data()["imageName"] !== null){
     deleteFileFromStorage(docSnap.data()["imageName"]); //delete old image
   }
+
   const imageRef = await uploadImageAsync(imageURI);
   updated_fields.image = imageRef.URL;
   updated_fields.imageName = imageRef.name;
@@ -168,8 +171,9 @@ export async function fetchDocumentById(collectionName, itemID) {
 
   if (docSnap.exists()) {
     // console.log("Document data:", docSnap.data());
-    docSnap.data()["id"] = docSnap.id;
-    return docSnap.data();
+    let elementWithID = docSnap.data();
+    elementWithID["id"] = docSnap.id;
+    return elementWithID;
   } else {
     // doc.data() will be undefined in this case
     console.log("No such document!");
@@ -180,7 +184,12 @@ export async function fetchDocumentById(collectionName, itemID) {
  * Adds new Drop Area entry to database. Returns the document's ID
  * @returns 
  */
-export async function addNewDropArea(areaName, areaHoodName, areaAddress, isMainStorageValue = false) {
+
+/**
+ * Adds new Drop Area entry to database. Returns the document's ID
+ * @returns drop area ID
+ */
+ export async function addNewDropArea(areaName, areaHoodName, areaAddress, isMainStorageValue = false) {
   // const areasRef = collection(db, 'dropAreas');
 
   const docRef = await addDoc(collection(db, 'dropAreas'), {
@@ -226,11 +235,14 @@ export async function addNewImportRecord(recordUserID, recordDate, recordArray) 
     itemsToAmounts: recordMap // <itemReference : int>
   }).catch(alert);
   // updateDocumentById("importGoodsRecord", docRef.id, { "id": docRef.id });
+
   console.log("Added new import record: ", recordMap);
+
   updateItemsAmountsFromRecord(recordMap, 1);
   return docRef.id;
 
 }
+
 
 export async function fetchImportRecordsSorted() {
   const qry = query(collection(db, 'importGoodsRecords'), orderBy('date', 'desc'));
@@ -255,8 +267,6 @@ function convertJsonArrayToMap(jsonArray) {
   jsonArray.forEach((obj) => {
     recordsMap[obj.id] = obj.amount;
   });
-  console.log("Map : ");
-  console.log(recordsMap);
   return recordsMap;
 }
 
@@ -276,7 +286,6 @@ export async function getUserByEmail(userEmail) {
   });
 
   return currentUser;
-
 }
 
 /**
@@ -348,6 +357,7 @@ export async function deleteUser(userID) {
   updateDoc(userRef, { isActive: false }).catch(alert);
   if (userID === auth.currentUser.uid) {
     console.log("signing out current user...");
+
     auth.signOut();
   }
 
@@ -368,9 +378,11 @@ export async function updateUser(userID, updated_fields) {
     return;
   }
 
-  if ( docSnap.data()["imageName"] !== null){
+
+  if(docSnap.data()["imageName"] !== null){
     deleteFileFromStorage(docSnap.data()["imageName"]); //delete old image
   }
+  
   const imageRef = await uploadImageAsync(updated_fields.image);
   updated_fields.image = imageRef.URL;
   updated_fields.imageName = imageRef.name;
@@ -380,7 +392,20 @@ export async function updateUser(userID, updated_fields) {
 }
 
 
+export async function fetchDropAreasSorted() {
+  const qry = query(collection(db, 'dropAreas'), orderBy('name'));
 
+  let Mycollection = await getDocs(qry);
+  let arr = [];
+  Mycollection.forEach(element => {
+    let elementWithID = element.data();
+    elementWithID["id"] = element.id //add ID to JSON
+    arr.push(elementWithID);
+  });
+
+  return arr;
+  
+}
 
 /**
  * Fetches users data sorted by name in an array. Attaches userID as a field.
@@ -405,7 +430,29 @@ export async function fetchUsersSorted(onlyActive) {
     arr.push(elementWithID);
   });
 
+
   return arr;
+}
+
+export async function getUserByEmail(userEmail) {
+  let qry = null;
+  qry = query(collection(db, 'users'), where('email','==', userEmail));
+  let Mycollection = await getDocs(qry);
+
+  console.log(userEmail);
+
+  let currentUser;
+
+  Mycollection.forEach(element => {
+    
+    
+    currentUser = element.data();
+
+    console.log(currentUser);
+  });
+
+  return currentUser;
+
 }
 
 
@@ -426,13 +473,15 @@ export async function addNewFeedback(feedbackUserID, feedbackTitle, feedbackDate
 export async function fetchFeedbacksSorted() {
   const qry = query(collection(db, 'feedbacks'), orderBy('date', 'desc'));
 
+
   let Mycollection = await getDocs(qry);
   let arr = [];
   Mycollection.forEach(element => {
     let elementWithID = element.data();
     elementWithID["id"] = element.id //add ID to JSON
     //convert Timestamp to Date:
-    element.data().date = timestampToDate(element.data().date);
+
+    elementWithID["date"] = elementWithID["date"].toDate();
     arr.push(elementWithID);
   });
 
@@ -484,6 +533,7 @@ export async function addNewDeleteRecord(recordUserID, recordDate, recordArray) 
   updateItemsAmountsFromRecord(recordMap, -1);
   return docRef.id;
 }
+
 
 export async function addNewWasteRecord(recordUserID, wasteDropAreaID, wasteDate, itemToAmountMap) {
   let recordMap = convertJsonArrayToMap(recordArray);

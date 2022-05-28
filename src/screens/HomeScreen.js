@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+  BackHandler,
   Image,
   Modal,
   Pressable,
@@ -12,21 +13,59 @@ import {
 import Background from "../components/Background";
 import Logo from "../components/Logo";
 import { auth } from "../config";
-import { addNewImportRecord, fetchDropAreasSorted, fetchItemsSorted } from "../config/database_interface";
-
-async function testFun() {
-  console.log( await fetchDropAreasSorted() );
-}
+import { fetchDocumentById } from "../config/database_interface";
+import '../config/GlobalData.js'
 
 export default function HomeScreen({ navigation }) {
+
+  console.log(auth.currentUser.uid);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // useEffect(() => {
-  //   // write your code here, it's like componentWillMount
-  //   fetchItemsSorted().then((result) => {
-  //     CreateItemsCard(result);
-  //   });
-  // }, []);
+  const profileDefaultImageUri = Image.resolveAssetSource(require("../assets/profile_default_image.png")).uri;
+
+  const [currUserInfo, setCurrUserInfo] = useState({name: "", image: profileDefaultImageUri, personalID: "", email: "", phoneNumber: "", rank: 2});
+
+   const getUserRankString = (userRank) => {
+
+    switch (userRank) {
+
+      case 0:
+        return "אחראי/ת המערכת";
+
+        case 1:
+          return "אדמין/ת";
+
+      case 2:
+          return "מתנדב/ת";
+
+      default:
+        return "No Type";
+
+    }
+  }
+
+  const getAndCheckUserInfo = async () => {
+
+    fetchDocumentById("users", auth.currentUser.uid).then((userInfoResult) => {
+
+      if(userInfoResult.isActive === false){
+
+        auth.signOut();
+      } else {
+
+        let userJSONObj = {name: userInfoResult.name, image: userInfoResult.image === null? profileDefaultImageUri :  userInfoResult.image, personalID: userInfoResult.personalID, email: userInfoResult.email, phoneNumber: userInfoResult.phoneNumber, rank: userInfoResult.rank};
+        
+        setCurrUserInfo(() => userJSONObj);
+      }
+    }); 
+  }
+
+  React.useEffect(() => {
+
+   getAndCheckUserInfo();
+
+  }, []);
+
   return (
     <Background>
       {/* <BackButton goBack={navigation.goBack} /> */}
@@ -47,16 +86,17 @@ export default function HomeScreen({ navigation }) {
               <View style={styles.headerContent}>
                 <Image
                   style={styles.avatar}
-                  source={require("../assets/avatar.png")}
+                  source={{ uri: currUserInfo.image}}
                 />
 
-                <Text style={styles.name}> add name here </Text>
+                <Text style={styles.name}> {currUserInfo.name} </Text>
               </View>
             </View>
             <View style={styles.DetailsContainer}>
-              <Text style={styles.ProfileDetails}> ת.ז: </Text>
-              <Text style={styles.ProfileDetails}> דואר אלקטרוני: </Text>
-              <Text style={styles.ProfileDetails}> תאריך לידה: </Text>
+              <Text style={styles.ProfileDetails}> ת.ז: {currUserInfo.personalID} </Text>
+              <Text style={styles.ProfileDetails}> דוא״ל: {currUserInfo.email}</Text>
+              <Text style={styles.ProfileDetails}> טל״ס: {currUserInfo.phoneNumber}</Text>
+              <Text style={styles.ProfileDetails}>סוג משתמש: {getUserRankString(currUserInfo.rank)}</Text>
             </View>
             <TouchableOpacity
               onPress={() => auth.signOut()}
@@ -70,7 +110,10 @@ export default function HomeScreen({ navigation }) {
       </Modal>
       <TouchableOpacity
         style={styles.profileIconContainer}
-        onPress={() => setModalVisible(true)}
+        onPress={() => {
+          getAndCheckUserInfo();
+          setModalVisible(true);
+        }}
       >
         <Image
           source={require("../assets/profile.png")}
@@ -79,9 +122,10 @@ export default function HomeScreen({ navigation }) {
       </TouchableOpacity>
       <View style={styles.buttonContainer}>
         <SafeAreaView style={styles.LogoTextContainer}>
+        <Logo />
           <Text style={styles.Text}>ניצול מזון : 12,000 ק''ג</Text>
 
-          <Logo />
+          
         </SafeAreaView>
         {/* all the button  */}
         <TouchableOpacity
@@ -141,13 +185,14 @@ const styles = StyleSheet.create({
   profileIconContainer: {
     position: "absolute",
     top: 60,
-    right: 4,
+    right: 10,
     width: 50,
-    height: 50
+    height: 50,
+    zIndex: 2
   },
   profileIcon: {
     width: 50,
-    height: 50
+    height: 50,
   },
   HiddenScreen: {
     flex: 1,
@@ -156,29 +201,34 @@ const styles = StyleSheet.create({
   ProfileScreen: {
     flex: 1,
     backgroundColor: "#ffffff",
+    borderWidth: 3, 
+    borderColor: "#1c6669",
     margin: 40,
     padding: 10,
     borderRadius: 10
   },
   header: {
-    backgroundColor: "#1c6669",
-    borderRadius: 10
+    backgroundColor: "#baead2",
+    borderRadius: 10,
+    borderWidth: 3, 
+    borderColor: "#1c6669"
   },
   headerContent: {
-    padding: 30,
-    alignItems: "center"
+    padding: 25,
+    alignItems: "center",
+    
   },
   avatar: {
     width: 130,
     height: 130,
     borderRadius: 63,
     borderWidth: 4,
-    borderColor: "white",
+    borderColor: "#1c6669",
     marginBottom: 10
   },
   name: {
     fontSize: 22,
-    color: "#FFFFFF",
+    color: "#000000",
     fontWeight: "600"
   },
   DetailsContainer: {
@@ -187,7 +237,8 @@ const styles = StyleSheet.create({
   },
   ProfileDetails: {
     fontSize: 20,
-    fontWeight: "bold"
+    fontWeight: "bold",
+    textAlign: "right"
   },
   buttonContainer: {
     flex: 1,

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Image, ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Image, ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import { Modal } from "react-native-paper";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import BackButton from "../components/BackButton";
 import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
+import { Colors } from "../config";
 import { addNewDropArea, deleteDocumentById, updateDocumentById } from "../config/database_interface";
 import { theme } from "../core/theme";
 
@@ -12,9 +14,17 @@ import { theme } from "../core/theme";
 
 export default function AddDropArea({ navigation, route }) {
 
-    const [dropAreaID, setID] = useState();
-    const [dropAreaName, setName] = useState();
-    const [dropAreaAddress, setAddress] = useState();
+    const [dropAreaID, setID] = useState("");
+    const [dropAreaName, setName] = useState("");
+    const [dropAreaAddress, setAddress] = useState("");
+    const [dropAreaHoodName, setHoodName] = useState("");
+    const [isMainStorage, setIsMainStorage] = useState(false);
+
+    const [alertTitle, setAlertTitle] = useState("שגיאה");
+    const [alertContent, setAlertContent] = useState("קרתה שגיאה");
+    const [isAleretVisible, setIsAlertVisible] = useState(false);
+
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const [isForEdit, setIsForEdit] = useState(route.params?.isForEdit);
 
@@ -22,54 +32,136 @@ export default function AddDropArea({ navigation, route }) {
 
         if (route.params?.tempDropAreaInfo) {
 
-            
-
             let currDropAreaInfo = route.params?.tempDropAreaInfo;
-
-            
 
             setID(currDropAreaInfo.id);
             setName(currDropAreaInfo.name);
+            setHoodName(currDropAreaInfo.hoodName);
             setAddress(currDropAreaInfo.address);
+            setIsMainStorage(currDropAreaInfo.isMainStorage);
+
         }
 
         setIsForEdit(route.params?.isForEdit);
 
 
     }, [route.params?.tempDropAreaInfo]);
-    
 
-    
+
+
 
     const onSaveButtonPressed = () => {
 
-        if(isForEdit){
-
-            updateDocumentById("dropAreas", dropAreaID, {"name": dropAreaName, "address": dropAreaAddress}).then(() => {
-
-                navigation.navigate({ name: 'ManageDropArea' }); 
-            });
+        if (!isValidInfo()) {
+            return;
         } else {
 
-            addNewDropArea(dropAreaName, dropAreaAddress).then(() => {
+            setIsProcessing(true);
+        }
 
-                navigation.navigate({ name: 'ManageDropArea' });
+        let updatedDropAreaJSON = {
+            "name": dropAreaName.trim(),
+            "hoodName": dropAreaHoodName.trim(),
+            "address": dropAreaAddress.toLowerCase().trim(),
+            "isMainStorage": false
+        };
+
+        if (isForEdit) {
+
+            updateDocumentById("dropAreas", dropAreaID, updatedDropAreaJSON).then(() => {
+
+                updatedDropAreaJSON["id"] = dropAreaID;
+
+                navigation.navigate({ name: 'ManageDropArea', params: { tempDropAreaInfo: updatedDropAreaJSON, status: "updated" } });
+            }).catch(() => {
+
+                setAlertTitle("שגיאה בהעלאת הנתונים");
+                setAlertContent("* נא לבדוק שיש חיבור לאינטרנט או לנסות מאוחר יותר");
+                setIsProcessing(false);
+                setIsAlertVisible(true);
+
+                console.log("update failed");
+            });
+
+        } else {
+
+            addNewDropArea(dropAreaName, dropAreaHoodName, dropAreaAddress, isMainStorage).then((newDropAreaID) => {
+
+                console.log("Hello: " + newDropAreaID);
+                updatedDropAreaJSON["id"] = newDropAreaID;
+                navigation.navigate({ name: 'ManageDropArea', params: { tempDropAreaInfo: updatedDropAreaJSON, status: "created" } });
+            }).catch(() => {
+
+                setAlertTitle("שגיאה בהעלאת הנתונים");
+                setAlertContent("* נא לבדוק שיש חיבור לאינטרנט או לנסות מאוחר יותר");
+                setIsProcessing(false);
+                setIsAlertVisible(true);
+
+                console.log("create failed");
             });
         }
 
-        
+
     };
 
     const onDeleteButtonPressed = () => {
-        
-        deleteDocumentById("dropAreas", dropAreaID);
-        navigation.navigate({ name: 'ManageDropArea' });
+
+        Alert.alert(
+            'האם אתה בטוח',
+            'האם אתה בטוח שאתה רוצה למחוק את נקודת הפיזור הזאת?',
+            [
+                {
+                    text: 'כן', onPress: () => {
+
+                        setIsProcessing(true);
+
+                        deleteDocumentById("dropAreas", dropAreaID).then(() => {
+
+                            navigation.navigate({ name: 'ManageDropArea', params: { dropAreaID: dropAreaID, status: "deleted" } });
+
+                        }).catch(() => {
+
+                            setAlertTitle("שגיאה במחיקת הנתונים");
+                            setAlertContent("* נא לבדוק שיש חיבור לאינטרנט או לנסות מאוחר יותר");
+                            setIsProcessing(false);
+                            setIsAlertVisible(true);
+
+
+                            console.log("delete failed");
+                        });
+
+                    },
+                },
+                { text: 'לא', onPress: () => { }, style: 'cancel' },
+            ]
+        );
+
     }
 
     const isValidInfo = () => {
 
+        let errorsString = "";
 
 
+        if (dropAreaName === "") {
+
+            errorsString += "* שם נקודת הפיזור חובה\n";
+        }
+
+        if (dropAreaHoodName === "") {
+
+            errorsString += "* שם השכונה חובה\n";
+        }
+
+        if (errorsString !== "") {
+
+            setAlertTitle("שגיאות קלט");
+            setAlertContent(errorsString);
+            setIsAlertVisible(true);
+            return false;
+        }
+
+        return true;
     }
 
 
@@ -77,31 +169,70 @@ export default function AddDropArea({ navigation, route }) {
     return (
 
 
+        <View style={styles.background}>
 
-        <ImageBackground source={require("../assets/background_dot.png")} resizeMode="repeat" style={styles.background}>
+            <ImageBackground source={require("../assets/background_dot.png")} resizeMode="repeat" style={styles.background}>
 
-            <BackButton goBack={navigation.goBack}></BackButton>
+                <BackButton goBack={navigation.goBack}></BackButton>
 
 
-            <KeyboardAvoidingWrapper>
+                <KeyboardAvoidingWrapper>
 
-                <View style={styles.volunteerInfoInputContainer}>
+                    <View style={styles.volunteerInfoInputContainer}>
 
-                    <TextInput style={styles.infoTextInputStyle} value={dropAreaName} onChangeText={(value) => setName(value)} placeholder="שם נקודת הפיזור" keyboardType="name-phone-pad"></TextInput>
-                    <TextInput style={styles.infoTextInputStyle} value={dropAreaAddress} onChangeText={(value) => setAddress(value)} placeholder="כתובת נקודת הפיזור" keyboardType="name-phone-pad"></TextInput>
+                        <TextInput style={styles.infoTextInputStyle} value={dropAreaName} onChangeText={(value) => setName(value)} placeholder="שם נקודת הפיזור" keyboardType="name-phone-pad"></TextInput>
+                        <TextInput style={styles.infoTextInputStyle} value={dropAreaHoodName} onChangeText={(value) => setHoodName(value)} placeholder="שם השכונה" keyboardType="name-phone-pad"></TextInput>
+                        <TextInput style={styles.infoTextInputStyle} value={dropAreaAddress} onChangeText={(value) => setAddress(value)} placeholder="כתובת נקודת הפיזור" keyboardType="name-phone-pad"></TextInput>
+
+                    </View>
+
+                </KeyboardAvoidingWrapper>
+
+
+
+                <TouchableOpacity style={styles.saveButtonStyle} onPress={onSaveButtonPressed}><Text style={styles.saveButtonTextStyle}>שמור</Text></TouchableOpacity>
+
+                <TouchableOpacity style={[styles.deleteButtonStyle, { display: isForEdit && !isMainStorage ? "flex" : "none" }]} onPress={onDeleteButtonPressed}><Text style={styles.deleteButtonTextStyle}>הוסיר</Text></TouchableOpacity>
+
+            </ImageBackground>
+
+
+
+            <Modal visible={isAleretVisible}>
+
+                <View style={styles.alertContainer}>
+
+                    <View style={styles.alertContentContainer}>
+
+                        <Text style={styles.alertTitleTextStyle}>{alertTitle}</Text>
+
+                        <Text style={styles.alertContentText}>{alertContent}</Text>
+
+                        <TouchableOpacity style={styles.alertCloseButtonStyle} onPress={() => setIsAlertVisible(false)}><Text style={styles.alertButtonTextStyle}>סגור</Text></TouchableOpacity>
+
+                    </View>
 
                 </View>
 
-            </KeyboardAvoidingWrapper>
+            </Modal>
 
+            <Modal visible={isProcessing}>
 
+                <View style={styles.processingAlertContainer}>
 
-            <TouchableOpacity style={styles.saveButtonStyle} onPress={onSaveButtonPressed}><Text style={styles.saveButtonTextStyle}>שמור</Text></TouchableOpacity>
+                    <View style={styles.processingAlertContentContainer}>
 
-            <TouchableOpacity style={[styles.deleteButtonStyle, { display: isForEdit ? "flex" : "none" }]} onPress={onDeleteButtonPressed}><Text style={styles.deleteButtonTextStyle}>הוסיר</Text></TouchableOpacity>
+                        <Text style={styles.processingAlertTextStyle}>הפעולה מתבצעת ...</Text>
 
-        </ImageBackground>
+                        <ActivityIndicator size="large" color={Colors.primary} />
 
+                    </View>
+
+                </View>
+
+            </Modal>
+
+        </View >
     );
 
 }
@@ -168,6 +299,90 @@ const styles = StyleSheet.create({
 
         color: "white",
         fontSize: 25
+    },
+
+
+    alertContainer: {
+        flexDirection: "column",
+        width: "100%",
+        height: "100%",
+        justifyContent: "center",
+        alignContent: "center",
+        alignItems: "center",
+    },
+
+    alertContentContainer: {
+
+        width: "70%",
+        backgroundColor: "white",
+        borderColor: "#ff3333",
+        borderWidth: 3,
+        borderRadius: 7,
+        padding: 10
+    },
+
+    alertTitleTextStyle: {
+        fontSize: 25,
+        fontWeight: "700",
+        textAlign: "center",
+        marginBottom: 15,
+        color: "#ff3333",
+
+    },
+
+    alertContentText: {
+
+        textAlign: "right",
+        fontSize: 16,
+        marginBottom: 10,
+        color: "#ff3333",
+        paddingRight: 8
+    },
+
+    alertCloseButtonStyle: {
+
+        width: "70%",
+        height: 50,
+        backgroundColor: "white",
+        borderColor: "#ff3333",
+        borderWidth: 2,
+        borderRadius: 7,
+        justifyContent: "center",
+        alignItems: "center",
+        alignContent: "center",
+        alignSelf: "center",
+    },
+
+    alertButtonTextStyle: {
+
+        fontSize: 18,
+        color: "#ff3333",
+    },
+
+    processingAlertContainer: {
+        flexDirection: "column",
+        width: "100%",
+        height: "100%",
+        justifyContent: "center",
+        alignContent: "center",
+        alignItems: "center",
+    },
+
+    processingAlertContentContainer: {
+        flexDirection: "row",
+        backgroundColor: "white",
+        justifyContent: "center",
+        alignContent: "center",
+        alignItems: "center",
+        padding: 20,
+        borderWidth: 3,
+        borderColor: "#1c6669"
+    },
+
+    processingAlertTextStyle: {
+
+        fontSize: 20,
+        marginRight: 15
     }
 
 });

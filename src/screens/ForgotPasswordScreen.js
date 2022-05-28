@@ -6,8 +6,9 @@ import Header from "../components/Header";
 import TextInput from "../components/TextInput";
 import Button from "../components/Button";
 import { emailValidator } from "../helpers/emailValidator";
-import {resetEmailPassword} from "../config/auth_interface";
+import { resetEmailPassword } from "../config/auth_interface";
 import { theme } from "../core/theme";
+import { ImageBackground, StyleSheet } from "react-native";
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState({ value: "", error: "" });
 
@@ -23,12 +24,12 @@ export default function ForgotPasswordScreen({ navigation }) {
   };
 
   return (
-    <Background>
+    <ImageBackground source={require("../assets/background_dot.png")} resizeMode="repeat" style={styles.background}>
       <BackButton goBack={navigation.goBack} />
       <Logo />
       <Header>שחזור סיסמה</Header>
       <TextInput
-        label="E-mail address"
+        label="דוא״ל"
         returnKeyType="done"
         value={email.value}
         onChangeText={(text) => setEmail({ value: text, error: '' })}
@@ -38,15 +39,30 @@ export default function ForgotPasswordScreen({ navigation }) {
         autoCompleteType="email"
         textContentType="emailAddress"
         keyboardType="email-address"
-        description="You will receive email with password reset link."
+        description="תקבל אימייל עם קישור לאיפוס סיסמה."
       />
       <Button
         mode="contained"
         onPress={onResetPasswordPress}
         style={{ marginTop: 16, backgroundColor: theme.colors.primary }}
       >
-        Send Instructions
+        שלח
       </Button>
-    </Background>
+    </ImageBackground>
   )
 }
+
+
+const styles = StyleSheet.create({
+
+  background: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: theme.colors.surface,
+    padding: 20,
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+});
