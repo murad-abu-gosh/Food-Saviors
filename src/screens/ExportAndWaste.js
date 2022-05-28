@@ -9,6 +9,12 @@ import { Button, List } from "react-native-paper";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
 import { checkActionCode } from "firebase/auth";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { auth } from "../config";
+import {
+  fetchDropAreasSorted,
+  addNewExportRecord,
+  addNewWasteRecord,
+} from "../config/database_interface";
 
 // const SecondPage = ({route}) => {
 //     return (
@@ -41,23 +47,42 @@ function ListItems(Data) {
   return result;
   //  </View>
 }
+function checkingReceivedData(ChangedData) {
+  let result = true;
+  console.log("inside checking received data!");
+  ChangedData.forEach((item) => {
+    console.log("if () > ()", parseInt(item.amount), parseInt(item.Storage));
+    if (parseInt(item.amount) > parseInt(item.Storage)) {
+      result = false;
+    }
+  });
+  return result;
+}
+function isEmpty(data) {
+  let result = true;
+  data.forEach((item) => {
+    if (parseInt(item.amount) != 0) result = false;
+  });
+  return result;
+}
+function checkMainStorage(DropsArray, Id) {
+  let result = false;
+  DropsArray.forEach((drop) => {
+    if (drop.id == Id) {
+      if (drop.isMainStorage) {
+        result = true;
+      }
+    }
+  });
+  return result;
+}
 export default function ExportAndWaste({ navigation, route }) {
-  // const AlertRemoving= () => {
-  //   const showAlert = () =>{
-  //      Alert.alert(
-  //         'You need to...'
-  //      )
-  //   }
-  // let addingAlert = "Are you sure you want to add goods to storage?"
-  // let aremovingAlert = "Are you sure you want to remove goods from storage?"
+  let userId = auth.currentUser.uid;
+  console.log("auth.currentUser.uid", userId);
+
   const showAlert = () => {
-    Alert.alert(
-      "Data has seccusfully updated!"
-      //  <View>
-      //   <Text>Are you sure you want to Add goods to storage ?</Text>
-      //   <Button>Yes Add please</Button>
-      //   </View>
-    );
+    Alert.alert("הנתונים הולכים להישמר");
+    navigation.navigate("ManageGoods");
   };
   let data = [];
   const [ChangedData, SetChangedData] = useState([
@@ -67,105 +92,120 @@ export default function ExportAndWaste({ navigation, route }) {
   ]);
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(null);
-  const [items, setItems] = useState([
-    { label: "abuTor", value: "apple" },
-    { label: "Azrieli", value: "banana" },
-  ]);
+  const [items, setItems] = useState([]);
+
   React.useEffect(() => {
     if (route.params?.paramKey) {
-      //   ChangedData = JSON.stringify(route.params?.paramKey);
-      //     console.log("newww " + ChangedData);
-
       SetChangedData(route.params?.paramKey);
-      console.log("wheeeeee5" + JSON.stringify(route.params?.paramKey));
     }
+    fetchDropAreasSorted().then((dropAreasInfo) => {
+      console.log("dropAreasInfo", dropAreasInfo);
+      let drops = [];
+      dropAreasInfo.forEach((drop) => {
+        drops.push({ label: drop.name, value: drop.id });
+      });
+      setItems(drops);
+    });
   }, [route.params?.paramKey]);
-  console.log("wheeeeee3" + JSON.stringify(route.params?.paramKey));
+  // console.log("wheeeeee3" + JSON.stringify(route.params?.paramKey));
   console.log(route.params?.paramKey);
-  // console.log("wheeeeee" + ChangedData);
-  // data = ChangedData;
-  // if(ChangedData){
+  console.log("drops", fetchDropAreasSorted());
   data = route.params?.paramKey.data;
   let Export = route.params?.paramKey.export;
+  // let date = "11-10-2001";
+
   if (Export) {
-    return (
-      <Background style={styles.backgroundEdit}>
-        <BackButton goBack={navigation.goBack} />
-        <View>
-          {/* <Text>{ListItems(route.params?.paramKey)}</Text> */}
-          <FlatList
-            style={styles.ListStyle}
-            data={data}
-            renderItem={({ item }) => (
-              <View style={styles.EveryItem}>
-                <Text style={styles.ItemTitle}>{item.Name}</Text>
-                <Text style={styles.ItemSub}>
-                  {item.amount} Boxes to be added to Export{"\n"}Total to be in
-                  storage ={" "}
-                  {parseInt(item.previousAmount) - parseInt(item.amount)}
-                </Text>
-              </View>
-            )}
-          />
+    if (isEmpty(data)) {
+      return (
+        <Background style={styles.backgroundEdit}>
+          <BackButton goBack={navigation.goBack} />
           <View>
-            <Button title="Open" onPress={() => setOpen(true)} />
-            <DatePicker
-              style={styles.datePickerStyle}
-              // date={volunteerBirthdayDate} //initial date from state
-              mode="date" //The enum of date, datetime and time
-              placeholder="Date"
-              format="DD-MM-YYYY"
-              confirmBtnText="Confirm"
-              cancelBtnText="Cancel"
-              customStyles={{
-                dateIcon: {
-                  display: "none",
-                },
-                dateInput: {
-                  borderWidth: 0,
-                },
-                placeholderText: {
-                  fontSize: 19,
-                  color: "#575757",
-                },
-                dateText: {
-                  fontSize: 20,
-                },
-                dateTouchBody: {
-                  marginTop: 0,
-                },
-              }}
-              onDateChange={(date) => {
-                setDate(date);
-              }}
-            />
-          </View>
-          <View>
-            <DropDownPicker
-              // placeholder={dropDownPlaceholder}
+            <Text
               style={{
-                borderColor: "#1c6669",
-                borderBottomWidth: 2,
+                fontSize: 20,
               }}
-              textStyle={{
-                fontSize: 15,
-              }}
-              showTickIcon={false}
-              containerStyle={styles.dropDownStyle}
-              open={open}
-              value={value}
-              items={items}
-              setOpen={setOpen}
-              setValue={setValue}
-              setItems={setItems}
-            />
+            >
+              אין נתונים!
+            </Text>
           </View>
-        </View>
-        <Pressable style={styles.ButtonView} onPress={showAlert}>
-          <Text style={styles.SavingButton}>Save updates</Text>
-        </Pressable>
-      </Background>
-    );
+        </Background>
+      );
+    } else
+      return (
+        <Background style={styles.backgroundEdit}>
+          <BackButton goBack={navigation.goBack} />
+          <View>
+            {/* <Text>{ListItems(route.params?.paramKey)}</Text> */}
+            <FlatList
+              style={styles.ListStyle}
+              data={data}
+              renderItem={({ item }) => {
+                if (item.amount != 0)
+                  return (
+                    <View style={styles.EveryItem}>
+                      <Text style={styles.ItemTitle}>{item.Name}</Text>
+                      <Text style={styles.ItemSub}>
+                        {item.amount} ארגזים לייצוא{"\n"}סך הכל במחסן ={" "}
+                        {parseInt(item.previousAmount) - parseInt(item.amount)}
+                      </Text>
+                    </View>
+                  );
+              }}
+            />
+            <View>
+              <Button title="Open" onPress={() => setOpen(true)} />
+            </View>
+            <View>
+              <DropDownPicker
+                style={{
+                  borderColor: "#1c6669",
+                  borderBottomWidth: 2,
+                }}
+                textStyle={{
+                  fontSize: 15,
+                }}
+                showTickIcon={false}
+                placeholder="נקודת פיזור"
+                containerStyle={styles.dropDownStyle}
+                open={open}
+                value={value}
+                items={items}
+                setOpen={setOpen}
+                setValue={setValue}
+                setItems={setItems}
+              />
+            </View>
+          </View>
+          <Pressable
+            style={styles.ButtonView}
+            onPress={() => {
+              console.log("\n\n\ninsideRun3\n\n\n");
+              let AddToDB = [];
+              data.forEach((item) => {
+                if (item.amount != 0) {
+                  let Veg = {};
+                  Veg.id = item.id;
+                  Veg.amount = parseInt(item.amount);
+                  AddToDB.push(Veg);
+                }
+              });
+
+              let today = new Date();
+              console.log("AddToDB", AddToDB);
+              let userId = auth.currentUser.uid;
+              console.log("auth.currentUser.uid", userId);
+              // let date = date().getDate();
+              console.log("today", today);
+              console.log("value", value);
+              addNewExportRecord(userId, value, today, AddToDB);
+              Alert.alert("הנתונים הולכים להישמר");
+              navigation.navigate("ManageGoods");
+            }}
+          >
+            <Text style={styles.SavingButton}>שמור נתונים</Text>
+          </Pressable>
+        </Background>
+      );
   } else {
     return (
       <Background style={styles.backgroundEdit}>
@@ -175,47 +215,20 @@ export default function ExportAndWaste({ navigation, route }) {
           <FlatList
             style={styles.ListStyle}
             data={data}
-            renderItem={({ item }) => (
-              <View style={styles.EveryItem}>
-                <Text style={styles.ItemTitle}>{item.Name}</Text>
-                <Text style={styles.ItemSub}>
-                  {item.amount} Boxes to be updated in DataBase
-                </Text>
-              </View>
-            )}
+            renderItem={({ item }) => {
+              if (item.amount != 0)
+                return (
+                  <View style={styles.EveryItem}>
+                    <Text style={styles.ItemTitle}>{item.Name}</Text>
+                    <Text style={styles.ItemSub}>
+                      {item.amount} ארגזים לעדכן בענן
+                    </Text>
+                  </View>
+                );
+            }}
           />
           <View>
             <Button title="Open" onPress={() => setOpen(true)} />
-            <DatePicker
-              style={styles.datePickerStyle}
-              // date={volunteerBirthdayDate} //initial date from state
-              mode="date" //The enum of date, datetime and time
-              placeholder="Date"
-              format="DD-MM-YYYY"
-              confirmBtnText="Confirm"
-              cancelBtnText="Cancel"
-              customStyles={{
-                dateIcon: {
-                  display: "none",
-                },
-                dateInput: {
-                  borderWidth: 0,
-                },
-                placeholderText: {
-                  fontSize: 19,
-                  color: "#575757",
-                },
-                dateText: {
-                  fontSize: 20,
-                },
-                dateTouchBody: {
-                  marginTop: 0,
-                },
-              }}
-              onDateChange={(date) => {
-                setDate(date);
-              }}
-            />
           </View>
           <View>
             <DropDownPicker
@@ -228,6 +241,7 @@ export default function ExportAndWaste({ navigation, route }) {
                 fontSize: 15,
               }}
               showTickIcon={false}
+              placeholder="נקודת פיזור"
               containerStyle={styles.dropDownStyle}
               open={open}
               value={value}
@@ -238,25 +252,38 @@ export default function ExportAndWaste({ navigation, route }) {
             />
           </View>
         </View>
-
-        <Pressable style={styles.ButtonView} onPress={showAlert}>
-          <Text style={styles.SavingButton}>Save updates</Text>
+        <Pressable
+          style={styles.ButtonView}
+          onPress={() => {
+            console.log("\n\n\ninsideRun4 == waste\n\n\n");
+            let AddToDB = [];
+            data.forEach((item) => {
+              if (item.amount != 0) {
+                let Veg = {};
+                Veg.id = item.id;
+                Veg.amount = parseInt(item.amount);
+                AddToDB.push(Veg);
+              }
+            });
+            // let update = {};
+            let today = new Date();
+            console.log("AddToDB", AddToDB);
+            let userId = auth.currentUser.uid;
+            console.log("auth.currentUser.uid", userId);
+            // let date = date().getDate();
+            console.log("today", today);
+            console.log("value", value);
+            // addNewExportRecord(userId, value, today, AddToDB);
+            addNewWasteRecord(userId, value, new Date(), AddToDB);
+            Alert.alert("הנתונים הולכים להישמר");
+            navigation.navigate("ManageGoods");
+          }}
+        >
+          <Text style={styles.SavingButton}>שמור נתונים</Text>
         </Pressable>
       </Background>
     );
   }
-  // }
-  // else
-  // {
-  // return(
-  // <Background>
-  //   <BackButton goBack={navigation.goBack} />
-  //     <ScrollView>
-  //       {ListItems(JSON.parse(ChangedData))}
-  //     </ScrollView>
-  // </Background>
-  // )
-  // }
 }
 const styles = StyleSheet.create({
   backgroundEdit: {
