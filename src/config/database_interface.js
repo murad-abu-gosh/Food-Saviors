@@ -12,8 +12,10 @@ import { useState } from "react";
  * @param itemAvgWeight
  * @param itemCurrentAmount
  */
+
 export async function addNewItem(itemName, itemImgUri, itemAvgWeight, itemCurrentAmount) {
   const imageRef = await uploadImageAsync(itemImgUri);
+
   const docRef = await addDoc(collection(db, 'items'), {
     name: itemName,
     image: imageRef.URL,
@@ -142,7 +144,7 @@ export async function updateDocumentById(collectionName, itemID, updated_fields)
  * @param collectionName String value of collection name
  * @returns array containing all documents
  */
-export async function fetchAllDocuments(collectionName) { // "items" "users" "dropAreas"
+ export async function fetchAllDocuments(collectionName) { // "items" "users" "dropAreas"
   let Mycollection = await getDocs(collection(db, collectionName));
   let arr = [];
   Mycollection.forEach(element => {
