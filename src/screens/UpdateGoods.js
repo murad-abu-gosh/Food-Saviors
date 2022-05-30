@@ -9,6 +9,7 @@ import {
   Pressable,
   Alert,
   ActivityIndicator,
+  ImageBackground,
 } from "react-native";
 import { Button, List, Modal } from "react-native-paper";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
@@ -54,7 +55,7 @@ export default function UpdateGoods({ navigation, route }) {
   let add = route.params?.paramKey.add;
   if (isEmpty(data)) {
     return (
-      <Background style={styles.backgroundEdit}>
+      <ImageBackground style={styles.backgroundEdit}>
         <SafeAreaView>
           <Text style={styles.ScreenTitle}>עדכון מחסן</Text>
         </SafeAreaView>
@@ -68,17 +69,17 @@ export default function UpdateGoods({ navigation, route }) {
             אין נתונים!
           </Text>
         </View>
-      </Background>
+      </ImageBackground>
     );
   } else if (add) {
     return (
       <View style={styles.background}>
-        <Background style={styles.backgroundEdit}>
-          {/* <SafeAreaView>
-          <Text style={styles.ScreenTitle}>עדכון מחסן</Text>
-        </SafeAreaView> */}
+        <ImageBackground style={styles.backgroundEdit}>
+          <SafeAreaView>
+            <Text style={styles.ScreenTitle}>עדכון מחסן</Text>
+          </SafeAreaView>
           <BackButton goBack={navigation.goBack} />
-          <View>
+          <View style={styles.Container}>
             {/* <Text>{ListItems(route.params?.paramKey)}</Text> */}
             <FlatList
               style={styles.ListStyle}
@@ -89,7 +90,9 @@ export default function UpdateGoods({ navigation, route }) {
                     <View style={styles.EveryItem}>
                       <Text style={styles.ItemTitle}>{item.Name}</Text>
                       <Text style={styles.ItemSub}>
-                        {parseInt(item.amount)} ארגזים להוסיף למחסן{"\n"}
+                        {parseInt(item.amount)} ארגזים להוסיף למחסן
+                      </Text>
+                      <Text style={styles.ItemSub}>
                         סך הכל ={" "}
                         {parseInt(item.amount) + parseInt(item.previousAmount)}
                       </Text>
@@ -126,7 +129,7 @@ export default function UpdateGoods({ navigation, route }) {
           >
             <Text style={styles.SavingButton}>שמור נתונים</Text>
           </Pressable>
-        </Background>
+        </ImageBackground>
         <Modal visible={isProcessing}>
           <View style={styles.processingAlertContainer}>
             <View style={styles.processingAlertContentContainer}>
@@ -143,9 +146,12 @@ export default function UpdateGoods({ navigation, route }) {
   } else {
     return (
       <View style={styles.background}>
-        <Background style={styles.backgroundEdit}>
+        <ImageBackground style={styles.backgroundEdit}>
+          <SafeAreaView>
+            <Text style={styles.ScreenTitle}>עדכון מחסן</Text>
+          </SafeAreaView>
           <BackButton goBack={navigation.goBack} />
-          <View>
+          <View style={styles.Container}>
             {/* <Text>{ListItems(route.params?.paramKey)}</Text> */}
             <FlatList
               style={styles.ListStyle}
@@ -191,7 +197,7 @@ export default function UpdateGoods({ navigation, route }) {
           >
             <Text style={styles.SavingButton}>שמור נתונים</Text>
           </Pressable>
-        </Background>
+        </ImageBackground>
         <Modal visible={isProcessing}>
           <View style={styles.processingAlertContainer}>
             <View style={styles.processingAlertContentContainer}>
@@ -214,55 +220,82 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
   },
   backgroundEdit: {
+    height: "100%",
     paddingLeft: 0,
     paddingRight: 0,
     paddingTop: 0,
     paddingBottom: 0,
     flexDirection: "column",
   },
-  EveryItem: {
-    width: "100%",
-    borderWidth: 2,
-    marginBottom: 8,
-    paddingLeft: 35,
-    paddingTop: 5,
-    paddingRight: 35,
-    paddingBottom: 5,
-    borderRadius: 5,
-    backgroundColor: "#f3f3f3",
-  },
   ListStyle: {
-    alignSelf: "center",
-    marginTop: "20%",
-    width: "100%",
-    // height: "90%",
+    height: 100,
   },
+  Container: {
+    // marginTop: "25%",
+    flex: 20,
+    // // justifyContent: "space-between",
+    // backgroundColor: "#fff",
+    padding: 5,
+    paddingBottom: 0,
+    margin: 0,
+    width: "100%",
+    height: "100%",
+  },
+  EveryItem: {
+    flex: 1,
+    // backgroundColor: "#a4dbc3",
+    alignItems: "center",
+    alignSelf: "center",
+    // justifyContent: "center",
+    justifyContent: "space-between",
+    // flexDirection: "row",
+    alignSelf: "center",
+    borderWidth: 2,
+    borderColor: "#006d77",
+    borderTopLeftRadius: 5,
+    borderTopRightRadius: 5,
+    borderBottomLeftRadius: 5,
+    borderBottomRightRadius: 5,
+    marginTop: 5,
+    width: "100%",
+    height: "10%",
+  },
+  // ListStyle: {
+  //   alignSelf: "center",
+  //   marginTop: "20%",
+  //   width: "100%",
+  //   // height: "90%",
+  // },
   ItemTitle: {
     fontSize: 20,
     fontWeight: "bold",
   },
   ButtonView: {
+    marginTop: 5,
     width: "100%",
-    height: "10%",
-    borderWidth: 2,
+    height: "8%",
+    borderColor: "black",
+    borderTopWidth: 2,
     color: "black",
-    marginBottom: 2,
+    // marginBottom:2
   },
   SavingButton: {
+    textAlignVertical: "center",
     alignSelf: "center",
     // elevation: 8,
-    backgroundColor: "#cdcccc",
+    backgroundColor: "#006d77",
     textAlign: "center",
     // borderRadius: 10,
     fontSize: 25,
     width: "100%",
-    color: "black",
     height: "100%",
+    color: "white",
     // marginBottom:2
     // paddingVertical: 10,
     // paddingHorizontal: 12,
   },
   ScreenTitle: {
+    // borderWidth: 20,
     textAlign: "center",
     fontSize: 24,
     fontWeight: "bold",

@@ -15,132 +15,82 @@ import {
   Keyboard,
   ImageBackground,
   Alert,
+  RefreshControl,
+  ScrollView,
 } from "react-native";
 import { Button, Card, List, Modal } from "react-native-paper";
 import BackButton from "../components/BackButton";
-import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import { theme } from "../core/theme";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-const Goods = [
-  {
-    Name: "פלפל",
-    Storage: 4,
-    BoxWeight: "3",
-    Pic: require("../assets/peper.png"),
-    id: "1",
-  },
-  {
-    Name: "עגבניה",
-    Storage: 9,
-    BoxWeight: "2",
-    Pic: require("../assets/tomato.png"),
-    id: "2",
-  },
-  {
-    Name: "מלפפון",
-    Storage: 7,
-    BoxWeight: "3",
-    Pic: require("../assets/cucumber.png"),
-    id: "3",
-  },
-  {
-    Name: "בצל",
-    Storage: 2,
-    BoxWeight: "2",
-    Pic: require("../assets/onion.png"),
-    id: "4",
-  },
-  {
-    Name: "Watermelon",
-    Storage: 4,
-    BoxWeight: "2",
-    Pic: require("../assets/watermelon.png"),
-    id: "5",
-  },
-  {
-    Name: "Potato",
-    Storage: 5,
-    BoxWeight: "3",
-    Pic: require("../assets/potato.png"),
-    id: "6",
-  },
-  {
-    Name: "Grapes",
-    Storage: 3,
-    BoxWeight: "2",
-    Pic: require("../assets/grapes.png"),
-    id: "7",
-  },
-  {
-    Name: "Peper",
-    Storage: 4,
-    BoxWeight: "3",
-    Pic: require("../assets/peper.png"),
-    id: "8",
-  },
-  {
-    Name: "Tomato",
-    Storage: 9,
-    BoxWeight: "2",
-    Pic: require("../assets/tomato.png"),
-    id: "9",
-  },
-  {
-    Name: "Cucamber",
-    Storage: 7,
-    BoxWeight: "3",
-    Pic: require("../assets/cucumber.png"),
-    id: "10",
-  },
-  {
-    Name: "Onion",
-    Storage: 2,
-    BoxWeight: "2",
-    Pic: require("../assets/onion.png"),
-    id: "11",
-  },
-  {
-    Name: "Watermelon",
-    Storage: 4,
-    BoxWeight: "2",
-    Pic: require("../assets/watermelon.png"),
-    id: "12",
-  },
-  {
-    Name: "Potato",
-    Storage: 5,
-    BoxWeight: "3",
-    Pic: require("../assets/potato.png"),
-    id: "13",
-  },
-];
-// const [ChangedData, SetChangedData] = useState([]);
-// let tempText = "";
-function checkingReceivedData(ChangedData, checkMinus) {
-  console.log("inside checking received data!");
-  let result = true;
-  if (checkMinus) {
-    ChangedData.forEach((item) => {
-      // console.log("if () > ()", parseInt(item.amount), parseInt(item.Storage));
-      if (parseInt(item.amount) > parseInt(item.Storage)) {
-        result = false;
-      }
-    });
-  }
-  ChangedData.forEach((item) => {
-    if (isNaN(parseInt(item.amount))) {
-      result = false;
-    }
-  });
-  return result;
-}
 export default function ManageGoods({ navigation }) {
+  const wait = (timeout) => {
+    return new Promise((resolve) => setTimeout(resolve, timeout));
+  };
+
+  // const App = () => {
+  //   const [refreshing, setRefreshing] = React.useState(false);
+  //   const onRefresh = React.useCallback(() => {
+  //     setRefreshing(true);
+  //     wait(2000).then(() => setRefreshing(false));
+  //   }, []);
+  // };
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    wait().then(() => {
+      fetchItemsSorted().then((items) => {
+        itemsArray = items;
+        if (firstTime) updateChangedData();
+        else {
+          console.log(" inside else", items);
+          updateChangedDataByAmount(itemsArray);
+        }
+        console.log(
+          "changedData ======Inside useEffectLisener======",
+          ChangedData
+        );
+        setRefreshing(false);
+      });
+    }, []);
+  });
   const [alertTitle, setAlertTitle] = useState("שגיאה");
   const [alertContent, setAlertContent] = useState("קרתה שגיאה");
   const [isAleretVisible, setIsAlertVisible] = useState(false);
 
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const isEmpty = (data) => {
+    let result = true;
+    data.forEach((item) => {
+      if (parseInt(item.amount) != 0) result = false;
+    });
+    if (result == true) setAlertContent(() => "אין נתונים");
+    return result;
+  };
+  const checkingReceivedData2 = (ChangedData, checkMinus) => {
+    console.log("inside checking received data!");
+    let result = true;
+    result = !isEmpty(ChangedData);
+
+    if (checkMinus) {
+      ChangedData.forEach((item) => {
+        // console.log("if () > ()", parseInt(item.amount), parseInt(item.Storage));
+        if (parseInt(item.amount) > parseInt(item.Storage)) {
+          setAlertContent(() => "לבחור כמות מהמחסן");
+          result = false;
+        }
+      });
+    }
+    ChangedData.forEach((item) => {
+      if (isNaN(parseInt(item.amount))) {
+        setAlertContent(() => "לכתוב רק מספרים");
+        result = false;
+      }
+    });
+    return result;
+  };
   let itemsArray;
   // console.log("itemsArray =====!!!!!!======", itemsArray);
   const [ChangedData, SetChangedData] = React.useState([]);
@@ -237,40 +187,20 @@ export default function ManageGoods({ navigation }) {
           <Text style={styles.ScreenTitle}>ניהול סחורות</Text>
         </SafeAreaView>
         <View style={styles.Container} keyboardShouldPersistTaps="handled">
-          <ScrollView>
+          <ScrollView
+            contentContainerStyle={styles.scrollView}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          >
             {Cards}
-            {/* {ChangedData.map((item) => {
-              // ChangedData.forEach((item) => renderItem(item))
-              return (
-                // <View style={styles.Every3Card}>
-                <View style={styles.EveryCard} key={item.id}>
-                  <Image style={styles.avatar} source={{ uri: item.Pic }} />
-                  <View style={styles.AllText}>
-                    <Text style={styles.cardTitle}>{item.Name}</Text>
-                    <Text style={styles.cardSubTitle}>
-                      {item.Storage} ארגזים במחסן {"\n"} משקל {item.BoxWeight}{" "}
-                      ק"ג
-                    </Text>
-                  </View>
-                  <TextInput
-                    style={styles.input}
-                    // onChangeText={(text) => SetChangedData(ChangedData => ChangedData.filter(id == item.id) => value= text)}
-                    onChangeText={(text) => {
-                      item.amount = text;
-                    }}
-                    keyboardType="numeric"
-                    placeholder={"0"}
-                  />
-                </View>
-              );
-            })} */}
           </ScrollView>
         </View>
         <View style={styles.BottomButtons}>
           <Pressable
             style={styles.bottomView}
             onPress={() => {
-              if (checkingReceivedData(ChangedData, false)) {
+              if (checkingReceivedData2(ChangedData, false)) {
                 navigation.navigate("UpdateGoods", {
                   paramKey: { data: ChangedData, add: true },
                 });
@@ -284,7 +214,7 @@ export default function ManageGoods({ navigation }) {
           <Pressable
             style={styles.bottomView}
             onPress={() => {
-              if (checkingReceivedData(ChangedData, true)) {
+              if (checkingReceivedData2(ChangedData, true)) {
                 navigation.navigate("UpdateGoods", {
                   paramKey: { data: ChangedData, add: false },
                 });
@@ -299,7 +229,7 @@ export default function ManageGoods({ navigation }) {
             <Text
               style={styles.bottomText}
               onPress={() => {
-                if (checkingReceivedData(ChangedData, true)) {
+                if (checkingReceivedData2(ChangedData, true)) {
                   navigation.navigate("ExportAndWaste", {
                     paramKey: { data: ChangedData, export: true },
                   });
@@ -312,11 +242,13 @@ export default function ManageGoods({ navigation }) {
           <Pressable style={styles.bottomView}>
             <Text
               style={styles.bottomText}
-              onPress={() =>
-                navigation.navigate("ExportAndWaste", {
-                  paramKey: { data: ChangedData, export: false },
-                })
-              }
+              onPress={() => {
+                if (checkingReceivedData2(ChangedData, false)) {
+                  navigation.navigate("ExportAndWaste", {
+                    paramKey: { data: ChangedData, export: false },
+                  });
+                } else setIsAlertVisible(true);
+              }}
             >
               בזבוז
             </Text>
@@ -362,28 +294,35 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   avatar: {
+    borderColor: "#006d77",
+    borderWidth: 1,
+    padding: 0,
     marginLeft: 12,
     alignSelf: "center",
-    flex: 1,
-    justifyContent: "flex-start",
+    // flex: 1,
+    // justifyContent: "flex-start",
     resizeMode: "contain",
-    // width: "10%",
-    // height: "10%",
-    aspectRatio: 1,
+    width: 80,
+    height: 80,
+    marginTop: 5,
+    marginBottom: 5,
+    borderRadius: 3,
+    // aspectRatio: 1,
   },
   input: {
     flex: 1.25,
     // width: 50,
-    height: 25,
-    backgroundColor: "#b6ffbf",
-    marginRight: 7,
-    marginLeft: 7,
-    borderWidth: 1,
+    height: 30,
+    backgroundColor: "#efefef",
+    marginRight: 12,
+    marginLeft: 12,
+    borderWidth: 2,
     borderTopLeftRadius: 5,
     borderTopRightRadius: 5,
     borderBottomLeftRadius: 5,
     borderBottomRightRadius: 5,
     textAlign: "center",
+    borderColor: "#006d77",
     // bottom : 0,
   },
   Container: {
@@ -393,12 +332,12 @@ const styles = StyleSheet.create({
     // backgroundColor: "#fff",
     padding: 5,
     paddingBottom: 0,
-    margin: 0,
+    marginBottom: 0,
     width: "100%",
   },
   BottomButtons: {
-    backgroundColor: "#a4dbc3",
-    borderTopWidth: 5,
+    backgroundColor: "white",
+    borderTopWidth: 4,
     // borderTopLeftRadius: 3,
     // borderTopRightRadius: 3,
     // borderBottomLeftRadius: 3,
@@ -412,8 +351,11 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     justifyContent: "center",
     bottom: 0,
+    borderColor: "#006d77",
   },
   bottomView: {
+    // display: "flex",
+    justifyContent: "center",
     // borderRightWidth:1,
     // borderLeftWidth:1,
     // height: "100%",
@@ -422,20 +364,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     width: "23%",
     // marginTop: 10,
-    color: "green",
+    // color: "green",
+    borderColor: "#006d77",
+    // borderLeftWidth: 3,
+    // borderRightWidth: 3,
+    // borderEndWidth: 5,
+    // borderStartWidth: 5,
+    height: "100%",
   },
   bottomText: {
+    textAlignVertical: "center",
+    justifyContent: "center",
+    // borderColor: "#006d77",
+    borderRadius: 20,
+    // borderWidth: 3,
+    height: "100%",
+    textAlign: "center",
     alignSelf: "center",
-    fontSize: 16,
+    fontSize: 20,
     // width:"30%",
-    color: "green",
+    color: "#006d77",
     fontWeight: "bold",
   },
   bottomText2: {
     alignSelf: "center",
-    fontSize: 24,
+    fontSize: 33,
+    color: "#006d77",
+    // textShadowColor: "rgba(0, 0, 0, 0.2)",
+    // textShadowOffset: { width: -1, height: 1 },
+    // textShadowRadius: 10,
     // width:"30%",
-    color: "green",
+    // color: "green",
+    // borderColor: "#006d77",
+    // borderWidth: 2,
     fontWeight: "bold",
   },
   FlatListStyle: {
@@ -443,7 +404,7 @@ const styles = StyleSheet.create({
     // padding:0,
   },
   EveryCard: {
-    backgroundColor: "#a4dbc3",
+    backgroundColor: "white",
     alignItems: "center",
     alignSelf: "center",
     justifyContent: "center",
@@ -451,11 +412,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignSelf: "center",
     borderWidth: 2,
-    borderColor: "#5A7F6F",
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
+    borderColor: "#006d77",
+    borderTopLeftRadius: 5,
+    borderTopRightRadius: 5,
+    borderBottomLeftRadius: 5,
+    borderBottomRightRadius: 5,
     marginTop: 5,
     width: "100%",
   },
@@ -557,5 +518,23 @@ const styles = StyleSheet.create({
   processingAlertTextStyle: {
     fontSize: 20,
     marginRight: 15,
+  },
+  dropAreaInfoContainer: {
+    alignItems: "flex-end",
+    width: "100%",
+    padding: 10,
+  },
+
+  infoTitleTextStyle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    direction: "rtl",
+    textAlign: "right",
+  },
+
+  infoTextStyle: {
+    fontSize: 18,
+    direction: "rtl",
+    textAlign: "right",
   },
 });
