@@ -242,10 +242,26 @@ export async function addNewImportRecord(recordUserID, recordDate, recordArray) 
   return docRef.id;
 
 }
+function getQueryFromDates(fromDate, toDate, collectionName) {
+  if (!fromDate && !toDate){
+    return query(collection(db, collectionName), orderBy('date', "desc"));
+  }
+  if (fromDate && toDate){
+    return query(collection(db, collectionName),where('date','>=', Timestamp.fromDate(fromDate)), 
+    where('date','<=', Timestamp.fromDate(toDate)), orderBy('date', "desc"));
+  }
+  if (fromDate && !toDate){
+    return query(collection(db, collectionName),where('date','>=', Timestamp.fromDate(fromDate)), orderBy('date', "desc"));
+  }
+  if (!fromDate && toDate){
+    return query(collection(db, collectionName), 
+    where('date','<=', Timestamp.fromDate(toDate)), orderBy('date', "desc"));
+  }
+}
 
 
-export async function fetchImportRecordsSorted() {
-  const qry = query(collection(db, 'importGoodsRecords'), orderBy('date', 'desc'));
+export async function fetchImportRecordsSorted(fromDate = null, toDate = null) {
+  let qry = getQueryFromDates(fromDate, toDate, 'importGoodsRecords');
 
   let Mycollection = await getDocs(qry);
   let arr = [];
@@ -253,7 +269,7 @@ export async function fetchImportRecordsSorted() {
     let elementWithID = element.data();
     elementWithID["id"] = element.id //add ID to JSON
     //convert Timestamp to Date:
-    element.data().date = timestampToDate(element.data().date);
+    // element.data().date = timestampToDate(element.data().date);
     arr.push(elementWithID);
   });
 
@@ -553,13 +569,16 @@ export async function addNewWasteRecord(recordUserID, wasteDropAreaID, wasteDate
 
 }
 
-export async function fetchWasteRecordsSorted() {
-  const qry = query(collection(db, 'goodsWasteRecords'), orderBy('date', "desc"));
+export async function fetchWasteRecordsSorted(fromDate = null, toDate = null) {
+  let qry = getQueryFromDates(fromDate, toDate, 'goodsWasteRecords');
 
   let Mycollection = await getDocs(qry);
   let arr = [];
+  // console.log('Printing waste records:');
+
   Mycollection.forEach(element => {
     let elementWithID = element.data();
+    // console.log(elementWithID);
     elementWithID["id"] = element.id //add ID to JSON
     arr.push(elementWithID);
   });
@@ -651,4 +670,139 @@ export async function fetchCurrentUserInfo() {
   let userImage = docSnap.data()["image"];
 
   return { "name": userName, "email": userEmail, "image": userImage };
+}
+
+//================================================================STATISTICS==============================================================
+export async function fetchExportRecordsSorted(fromDate = null, toDate = null) {
+  let qry = getQueryFromDates(fromDate, toDate, 'exportGoodsRecords');
+
+  let Mycollection = await getDocs(qry);
+  let arr = [];
+  Mycollection.forEach(element => {
+    let elementWithID = element.data();
+    elementWithID["id"] = element.id //add ID to JSON
+    //convert Timestamp to Date:
+    element.data().date = timestampToDate(element.data().date);
+    arr.push(elementWithID);
+  });
+
+  return arr;
+
+}
+
+export async function fetchDeleteRecordsSorted(fromDate = null, toDate = null) {
+  let qry = getQueryFromDates(fromDate, toDate, 'deleteRecords');
+
+  let Mycollection = await getDocs(qry);
+  let arr = [];
+  Mycollection.forEach(element => {
+    let elementWithID = element.data();
+    elementWithID["id"] = element.id //add ID to JSON
+    //convert Timestamp to Date:
+    element.data().date = timestampToDate(element.data().date);
+    arr.push(elementWithID);
+  });
+
+  return arr;
+
+}
+
+function calculateImportRecord(record, dictionary) {
+  let recordMap = record.itemsToAmounts;
+  const itemsIDs = Object.keys(dictionary);
+  itemsIDs.forEach((key, index) => {
+    if (key in recordMap) {
+      dictionary[key] = (recordMap[key]) + dictionary[key];
+    }  })
+}
+
+function calculateDeleteRecord(record, dictionary) {
+  let recordMap = record.itemsToAmounts;
+  const itemsIDs = Object.keys(dictionary);
+  itemsIDs.forEach((key, index) => {
+    if (key in recordMap) {
+      dictionary[key] = (recordMap[key]) + dictionary[key];
+    }  })
+}
+
+function calculateExportRecord(record, dictionary) {
+  let recordMap = record.itemToAmount;
+  // console.log("record map: ",recordMap);
+  const itemsIDs = Object.keys(dictionary);
+  itemsIDs.forEach((key, index) => {
+    if (key in recordMap) {
+      dictionary[key] = (recordMap[key]) + dictionary[key];
+    }
+  })
+}
+
+function calculateWasteRecord(record, dictionary) {
+  let recordMap = record.itemsToAmounts;
+  const itemsIDs = Object.keys(dictionary);
+  itemsIDs.forEach((key, index) => {
+    if (key in recordMap) {
+      dictionary[key] = (recordMap[key]) + dictionary[key];
+    }
+    // wastesDictionary[key] = (recordMap[key] || 0) + wastesDictionary[key];
+  })
+}
+
+function createItemInfoJSON(itemID, itemName, itemImage, itemBoxAvgWeight, itemReceivedAmount, itemExportAmount, itemWasteAmount, itemSavedAmount){
+  return {id : itemID, name: itemName, image: itemImage, boxWeight: itemBoxAvgWeight, receivedAmount : itemReceivedAmount, exportAmount : itemExportAmount,
+     wasteAmount : itemWasteAmount, savedAmount : itemSavedAmount};
+}
+
+/**
+ * 
+ * @param {*} fromDate 
+ * @param {*} toDate 
+ * @returns Array of JSONs
+ */
+export async function getGeneralStatisticsArray(fromDate = null, toDate = null) {
+  if (fromDate){
+    fromDate.setHours(0,0,0,0);
+  }
+  if (toDate){
+    toDate.setHours(0,0,0,0);
+  }
+  console.log("Fetching statistics from date: ", fromDate, ", to date: ", toDate);
+  let importRecords = await fetchImportRecordsSorted(fromDate, toDate);
+  let deleteRecords = await fetchDeleteRecordsSorted(fromDate, toDate);
+  let exportRecords = await fetchExportRecordsSorted(fromDate, toDate);
+  let wasteRecords = await fetchWasteRecordsSorted(fromDate, toDate);
+  let items = await fetchItemsSorted();
+  let itemsIDs = Object.keys(items);
+  let importsDictionary = {};
+  let deletesDictionary = {};
+  let exportsDictionary = {};
+  let wastesDictionary = {};
+
+  items.forEach((item) => {
+    // console.log("adding " + item.id);
+    importsDictionary[item.id] = 0;
+    exportsDictionary[item.id] = 0;
+    deletesDictionary[item.id] = 0;
+    wastesDictionary[item.id] = 0;
+  });
+
+  importRecords.forEach((record) => calculateImportRecord(record, importsDictionary));
+  // console.log("importRecords: ", importsDictionary);
+
+  deleteRecords.forEach((record) => calculateDeleteRecord(record, deletesDictionary));
+  // console.log("deleteRecords: ", deletesDictionary);
+
+  wasteRecords.forEach((record) => calculateWasteRecord(record, wastesDictionary));
+  // console.log("wasteRecords: ", wastesDictionary);
+
+  exportRecords.forEach((record) => calculateExportRecord(record, exportsDictionary));
+  // console.log("exportRecords: ", exportsDictionary);
+
+  let itemsFinalArray = [];
+  let currentItemJSON = null;
+  items.forEach( (item) => {
+    itemsFinalArray.push(createItemInfoJSON(item.id , item.name, item.image, item.average_weight, (importsDictionary[item.id] - deletesDictionary[item.id]),
+     exportsDictionary[item.id], wastesDictionary[item.id], (importsDictionary[item.id] - deletesDictionary[item.id]) - wastesDictionary[item.id]));
+  }) 
+
+  return itemsFinalArray;
 }
