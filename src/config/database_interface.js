@@ -45,15 +45,15 @@ export async function deleteItem(documentID) {
 }
 
 /**
- * Updates item. If image to be updated, imageURI must be provided. Otherwise, put imageURI=null
+ * Updates item info.
  * @param {*} itemID 
  * @param {*} updated_fields 
  */
 export async function updateItem(itemID, updated_fields) {
   const itemRef = doc(db, 'items', itemID);
-  const docSnap = await getDoc(userDocRef);
+  const docSnap = await getDoc(itemRef);
   if (updated_fields.image === docSnap.data()['image']) { // no new image
-    updateDoc(userDocRef, updated_fields).catch(alert);
+    updateDoc(itemRef, updated_fields).catch(alert);
     return;
   }
 
