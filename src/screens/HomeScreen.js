@@ -16,15 +16,15 @@ import { auth } from "../config";
 import { fetchDocumentById, fetchImportRecordsSorted, getGeneralStatisticsArray } from "../config/database_interface";
 
 
-async function testFun() {
-  const sevenDaysAgo: Date = new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000)  
-  // let fromDate = new Date();
-  // let toDate = new Date();
-  // console.log("7 days ago: ", sevenDaysAgo);
-  // console.log("from date: ", fromDate);
-  // console.log("to date: ", toDate);
-  console.log(await getGeneralStatisticsArray(null, sevenDaysAgo));
-}
+// async function testFun() {
+//   const sevenDaysAgo: Date = new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000)  
+//   // let fromDate = new Date();
+//   // let toDate = new Date();
+//   // console.log("7 days ago: ", sevenDaysAgo);
+//   // console.log("from date: ", fromDate);
+//   // console.log("to date: ", toDate);
+//   console.log(await getGeneralStatisticsArray(null, sevenDaysAgo));
+// }
 
 export default function HomeScreen({ navigation }) {
 
