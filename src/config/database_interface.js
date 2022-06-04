@@ -46,9 +46,7 @@ export async function deleteItem(documentID) {
 
 /**
  * Updates item. If image to be updated, imageURI must be provided. Otherwise, put imageURI=null
- * @param {*} collectionName 
  * @param {*} itemID 
- * @param {*} imageURI imageURI or null
  * @param {*} updated_fields 
  */
 export async function updateItem(itemID, updated_fields) {
