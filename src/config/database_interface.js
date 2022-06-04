@@ -51,19 +51,19 @@ export async function deleteItem(documentID) {
  * @param {*} imageURI imageURI or null
  * @param {*} updated_fields 
  */
-export async function updateItem(itemID, imageURI, updated_fields) {
+export async function updateItem(itemID, updated_fields) {
   const itemRef = doc(db, 'items', itemID);
-  if (!imageURI) { // no new image
-    updateDoc(itemRef, updated_fields).catch(alert);
+  const docSnap = await getDoc(userDocRef);
+  if (updated_fields.image === docSnap.data()['image']) { // no new image
+    updateDoc(userDocRef, updated_fields).catch(alert);
     return;
   }
-  const docSnap = await getDoc(itemRef);
 
   if (docSnap.data()["imageName"] !== null) {
     deleteFileFromStorage(docSnap.data()["imageName"]); //delete old image
   }
 
-  const imageRef = await uploadImageAsync(imageURI);
+  const imageRef = await uploadImageAsync(updated_fields.image);
   updated_fields.image = imageRef.URL;
   updated_fields.imageName = imageRef.name;
 
