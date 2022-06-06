@@ -96,7 +96,7 @@ export default function LoginScreen({ navigation }) {
         <TouchableOpacity
           onPress={() => navigation.navigate("ForgotPassword")}
         >
-          <Text style={styles.forgot}>שכחת/שינוי ססמתך?</Text>
+          <Text style={styles.forgot}>שכחת/שינוי סיסמה?</Text>
         </TouchableOpacity>
       </View>
       <Button style={styles.button} mode="contained" onPress={onLoginPressed}>
