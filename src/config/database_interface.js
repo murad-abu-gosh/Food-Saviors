@@ -257,6 +257,23 @@ function getQueryFromDates(fromDate, toDate, collectionName) {
   }
 }
 
+function getQueryFromDatesAndArea(fromDate, toDate, areaID, collectionName) {
+  if (!fromDate && !toDate){
+    return query(collection(db, collectionName), where('dropAreaID', '==', areaID), orderBy('date', "desc"));
+  }
+  if (fromDate && toDate){
+    return query(collection(db, collectionName), where('dropAreaID', '==', areaID), where('date','>=', Timestamp.fromDate(fromDate)), 
+    where('date','<=', Timestamp.fromDate(toDate)), orderBy('date', "desc"));
+  }
+  if (fromDate && !toDate){
+    return query(collection(db, collectionName), where('dropAreaID', '==', areaID), where('date','>=', Timestamp.fromDate(fromDate)), orderBy('date', "desc"));
+  }
+  if (!fromDate && toDate){
+    return query(collection(db, collectionName), where('dropAreaID', '==', areaID), 
+    where('date','<=', Timestamp.fromDate(toDate)), orderBy('date', "desc"));
+  }
+}
+
 
 export async function fetchImportRecordsSorted(fromDate = null, toDate = null) {
   let qry = getQueryFromDates(fromDate, toDate, 'importGoodsRecords');
@@ -585,6 +602,23 @@ export async function fetchWasteRecordsSorted(fromDate = null, toDate = null) {
 
 }
 
+export async function fetchAreaWasteRecordsSorted(fromDate = null, toDate = null, areaID) {
+  let qry = getQueryFromDatesAndArea(fromDate, toDate, areaID, 'exportGoodsRecords');
+
+  let Mycollection = await getDocs(qry);
+  let arr = [];
+  Mycollection.forEach(element => {
+    let elementWithID = element.data();
+    elementWithID["id"] = element.id //add ID to JSON
+    //convert Timestamp to Date:
+    element.data().date = timestampToDate(element.data().date);
+    arr.push(elementWithID);
+  });
+
+  return arr;
+
+}
+
 
 export async function deleteDocumentById(collectionName, documentID) {
   await deleteDoc(doc(db, collectionName, documentID));
@@ -687,6 +721,22 @@ export async function fetchExportRecordsSorted(fromDate = null, toDate = null) {
   return arr;
 
 }
+export async function fetchAreaExportRecordsSorted(fromDate = null, toDate = null, areaID) {
+  let qry = getQueryFromDatesAndArea(fromDate, toDate, areaID, 'exportGoodsRecords');
+
+  let Mycollection = await getDocs(qry);
+  let arr = [];
+  Mycollection.forEach(element => {
+    let elementWithID = element.data();
+    elementWithID["id"] = element.id //add ID to JSON
+    //convert Timestamp to Date:
+    element.data().date = timestampToDate(element.data().date);
+    arr.push(elementWithID);
+  });
+
+  return arr;
+
+}
 
 export async function fetchDeleteRecordsSorted(fromDate = null, toDate = null) {
   let qry = getQueryFromDates(fromDate, toDate, 'deleteRecords');
@@ -708,6 +758,7 @@ export async function fetchDeleteRecordsSorted(fromDate = null, toDate = null) {
 function calculateImportRecord(record, dictionary) {
   let recordMap = record.itemsToAmounts;
   const itemsIDs = Object.keys(dictionary);
+  if (!recordMap) return;
   itemsIDs.forEach((key, index) => {
     if (key in recordMap) {
       dictionary[key] = (recordMap[key]) + dictionary[key];
@@ -717,6 +768,7 @@ function calculateImportRecord(record, dictionary) {
 function calculateDeleteRecord(record, dictionary) {
   let recordMap = record.itemsToAmounts;
   const itemsIDs = Object.keys(dictionary);
+  if (!recordMap) return;
   itemsIDs.forEach((key, index) => {
     if (key in recordMap) {
       dictionary[key] = (recordMap[key]) + dictionary[key];
@@ -727,6 +779,7 @@ function calculateExportRecord(record, dictionary) {
   let recordMap = record.itemToAmount;
   // console.log("record map: ",recordMap);
   const itemsIDs = Object.keys(dictionary);
+  if (!recordMap) return;
   itemsIDs.forEach((key, index) => {
     if (key in recordMap) {
       dictionary[key] = (recordMap[key]) + dictionary[key];
@@ -737,6 +790,7 @@ function calculateExportRecord(record, dictionary) {
 function calculateWasteRecord(record, dictionary) {
   let recordMap = record.itemsToAmounts;
   const itemsIDs = Object.keys(dictionary);
+  if (!recordMap) return;
   itemsIDs.forEach((key, index) => {
     if (key in recordMap) {
       dictionary[key] = (recordMap[key]) + dictionary[key];
@@ -747,6 +801,11 @@ function calculateWasteRecord(record, dictionary) {
 
 function createItemInfoJSON(itemID, itemName, itemImage, itemBoxAvgWeight, itemReceivedAmount, itemExportAmount, itemWasteAmount, itemSavedAmount){
   return {id : itemID, name: itemName, image: itemImage, boxWeight: itemBoxAvgWeight, receivedAmount : itemReceivedAmount, exportAmount : itemExportAmount,
+     wasteAmount : itemWasteAmount, savedAmount : itemSavedAmount};
+}
+
+function createItemInfoJSONArea(itemID, itemName, itemImage, itemBoxAvgWeight, itemExportAmount, itemWasteAmount, itemSavedAmount){
+  return {id : itemID, name: itemName, image: itemImage, boxWeight: itemBoxAvgWeight, exportAmount : itemExportAmount,
      wasteAmount : itemWasteAmount, savedAmount : itemSavedAmount};
 }
 
@@ -800,6 +859,44 @@ export async function getGeneralStatisticsArray(fromDate = null, toDate = null) 
   items.forEach( (item) => {
     itemsFinalArray.push(createItemInfoJSON(item.id , item.name, item.image, item.average_weight, (importsDictionary[item.id] - deletesDictionary[item.id]),
      exportsDictionary[item.id], wastesDictionary[item.id], (importsDictionary[item.id] - deletesDictionary[item.id]) - wastesDictionary[item.id]));
+  }) 
+
+  return itemsFinalArray;
+}
+
+export async function getDropAreaStatistics(fromDate = null, toDate = null, dropAreaID) {
+  if (fromDate){
+    fromDate.setHours(0,0,0,0);
+  }
+  if (toDate){
+    toDate.setHours(0,0,0,0);
+  }
+  console.log("Fetching statistics of areaID ",dropAreaID ," from date: ", fromDate, ", to date: ", toDate);
+  let exportRecords = await fetchAreaExportRecordsSorted(fromDate, toDate, dropAreaID);
+  let wasteRecords = await fetchAreaWasteRecordsSorted(fromDate, toDate, dropAreaID);
+  let items = await fetchItemsSorted();
+  let itemsIDs = Object.keys(items);
+
+  let exportsDictionary = {};
+  let wastesDictionary = {};
+
+  items.forEach((item) => {
+    // console.log("adding " + item.id);
+    exportsDictionary[item.id] = 0;
+    wastesDictionary[item.id] = 0;
+  });
+
+  wasteRecords.forEach((record) => calculateWasteRecord(record, wastesDictionary));
+  // console.log("wasteRecords: ", wasteRecords);
+
+  exportRecords.forEach((record) => calculateExportRecord(record, exportsDictionary));
+  // console.log("exportRecords: ", exportRecords);
+
+  let itemsFinalArray = [];
+  let currentItemJSON = null;
+  items.forEach( (item) => {
+    itemsFinalArray.push(createItemInfoJSONArea(item.id , item.name, item.image, item.average_weight, exportsDictionary[item.id],
+       wastesDictionary[item.id], exportsDictionary[item.id] - wastesDictionary[item.id]));
   }) 
 
   return itemsFinalArray;
