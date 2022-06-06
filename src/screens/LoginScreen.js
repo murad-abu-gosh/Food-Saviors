@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import { ActivityIndicator, ImageBackground, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Modal, Text } from "react-native-paper";
-import Background from "../components/Background";
 import Logo from "../components/Logo";
 import Header from "../components/Header";
 import Button from "../components/Button";
 import TextInput from "../components/TextInput";
-import BackButton from "../components/BackButton";
 import { theme } from "../core/theme";
 import { emailValidator } from "../helpers/emailValidator";
 import { passwordValidator } from "../helpers/passwordValidator";
@@ -28,7 +26,7 @@ export default function LoginScreen({ navigation }) {
 
   const onLoginPressed = () => {
 
-    setIsProcessing(true);
+    
 
     const emailError = emailValidator(email.value);
     const passwordError = passwordValidator(password.value);
@@ -38,9 +36,9 @@ export default function LoginScreen({ navigation }) {
       return;
     }
 
-    getUserByEmail(email.value.toLowerCase()).then((currUserInfo) => {
+    setIsProcessing(true);
 
-      console.log("$$$$$$$$$$$$$$");
+    getUserByEmail(email.value.toLowerCase()).then((currUserInfo) => {
       console.log(currUserInfo);
 
       if (currUserInfo === undefined || currUserInfo.isActive === false) {
@@ -72,7 +70,7 @@ export default function LoginScreen({ navigation }) {
     <ImageBackground source={require("../assets/background_dot.png")} resizeMode="repeat" style={styles.background}>
       {/* <BackButton goBack={navigation.goBack} /> */}
       <Logo />
-      <Header>מצילות המזון</Header>
+      {/* <Header>מצילות המזון</Header> */}
       <TextInput
         label="דוא״ל"
         returnKeyType="next"

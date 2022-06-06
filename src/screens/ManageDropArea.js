@@ -1,28 +1,23 @@
 import React, { useState } from "react";
-import { Image, ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
-
-import Background from "../components/Background";
+import { ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
 import BackButton from "../components/BackButton";
 import { FlatList, TouchableOpacity } from "react-native-gesture-handler";
 import { getStatusBarHeight } from "react-native-status-bar-height";
-import { useIsFocused } from "@react-navigation/native";
-import { fetchAllDocuments, fetchDropAreasSorted } from "../config/database_interface";
+import { fetchDropAreasSorted } from "../config/database_interface";
 import OurActivityIndicator from "../components/OurActivityIndicator";
 import { theme } from "../core/theme";
 
-function useForceUpdate() {
-  const [value, setValue] = useState(0); // integer state
-  return () => setValue(value => value + 1); // update the state to force render
-}
 
 export default function ManageDropArea({ navigation, route }) {
-
+  
+  // initializing the needed variables/useStates
   const [isLoading, setIsLoading] = useState(true);
 
   const [fullDropAreasInfo, setFullDropAreasInfo] = useState([]);
 
   const [dropAreasInfo, setDropAreasInfo] = useState([]);
 
+  // This function receives a searcing string and it fills the display list with the suitable items from the fullItemslist
   const updateListBySearch = (searchString) => {
 
     searchString = searchString.toLowerCase().trim();
@@ -55,6 +50,9 @@ export default function ManageDropArea({ navigation, route }) {
   };
 
 
+  // This function fetches all the dropAreas data from the firebase and it stores them in the full and display lists
+  // it hides the MainStorage drop Area which we change the isMainStorage to it to true from the fire base console
+  // we hide it so the user don't git distrupted and we prevent him from editing or deleting it
   const fetchAllDropAreasDocuments = async () => {
 
     setFullDropAreasInfo([]);
@@ -75,6 +73,8 @@ export default function ManageDropArea({ navigation, route }) {
     setDropAreasInfo(() => [...dropAreasWithoutMainStorage]);
   };
 
+  // This useEffect runs just once when the screen opens 
+  // it fetches the data of the dropAreas from the firebase using the function fetchAllDropAreasDocuments 
   React.useEffect(() => {
     fetchAllDropAreasDocuments().then(() => {
 
@@ -83,6 +83,9 @@ export default function ManageDropArea({ navigation, route }) {
     });
   }, []);
 
+  // This useEffect runs each time the variable status from the route changes so we acn make the proper action
+  // acording to the status value (update/create/delete)
+  // the actions is to modify the data (lists) according to the action that happend in the AddDropArea screen
   React.useEffect(() => {
     if (route.params?.status) {
 
@@ -127,6 +130,7 @@ export default function ManageDropArea({ navigation, route }) {
   }, [route.params?.status]);
 
 
+   // This function returns the index of the dropArea item in the list accoeding to the dropAreaID
   const getDropAreaItemIndex = (dropAreaID) => {
 
     for (let currIndex = 0; currIndex < fullDropAreasInfo.length; currIndex++) {
@@ -140,6 +144,8 @@ export default function ManageDropArea({ navigation, route }) {
     return -1;
   }
 
+  // This function returns the render item / the card of the dropArea info after filling it with the dropArea info from
+  // the received item argumnet so we can display it in the flatlist
   const getListRenderItem = (item) => {
 
     return (
@@ -180,6 +186,7 @@ export default function ManageDropArea({ navigation, route }) {
   );
 }
 
+// These are the styles of the screen and the dropAreas cards
 const styles = StyleSheet.create({
 
   background: {
