@@ -1,14 +1,11 @@
 import React, { useState } from "react";
-import { ActivityIndicator, BackHandler, Image, ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
-
-import Background from "../components/Background";
-
+import {Image, ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
 import BackButton from "../components/BackButton";
 import { FlatList, TouchableOpacity } from "react-native-gesture-handler";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { setStatusBarStyle } from "expo-status-bar";
-import { fetchAllDocuments, fetchDocumentById, fetchUsersSorted } from "../config/database_interface";
-import { auth, Colors } from "../config";
+import { fetchDocumentById, fetchUsersSorted } from "../config/database_interface";
+import { auth } from "../config";
 import { theme } from "../core/theme";
 import OurActivityIndicator from "../components/OurActivityIndicator";
 
@@ -17,6 +14,7 @@ export default function ManageVolunteers({ navigation, route }) {
 
   setStatusBarStyle("dark");
 
+  // initializing the needed variables/useStates
   const profileDefaultImageUri = Image.resolveAssetSource(require("../assets/profile_default_image.png")).uri;
 
   const [isLoading, setIsLoading] = useState(true);
@@ -27,6 +25,7 @@ export default function ManageVolunteers({ navigation, route }) {
 
   const [currUserInfo, setCurrUserInfo] = useState();
 
+  // This function receives a searcing string and it fills the display list with the suitable items from the fullItemslist
   const updateListBySearch = (searchString) => {
 
     searchString = searchString.toLowerCase().trim();
@@ -62,6 +61,7 @@ export default function ManageVolunteers({ navigation, route }) {
 
   };
 
+  // This function fetches all the volunters data from the firebase and it stores them in the full and display lists
   const fetchAllVolunteersDocuments = async () => {
 
     setFullVolunteersInfo([]);
@@ -75,6 +75,9 @@ export default function ManageVolunteers({ navigation, route }) {
     setVolunteeresInfo(() => [...volunteersList]);
   };
 
+  // This useEffect runs just once when the screen opens 
+  // it fetches the data of the volunters from the firebase using the function fetchAllVolunteersDocuments
+  // also it fetches the current volunter info so we can decide which actions the current user can apply according to his rank/permessions
   React.useEffect(() => {
 
     console.log(auth.currentUser.uid);
@@ -90,13 +93,13 @@ export default function ManageVolunteers({ navigation, route }) {
       setIsLoading(() => false);
     });
 
-    
-
   }, []);
 
 
 
-
+  // This useEffect runs each time the variable status from the route changes so we acn make the proper action
+  // acording to the status value (update/create/delete)
+  // the actions is to modify the data (lists) according to the action that happend in the AddVolunter screen
   React.useEffect(() => {
     if (route.params?.status) {
 
@@ -139,11 +142,12 @@ export default function ManageVolunteers({ navigation, route }) {
     }
   }, [route.params?.status]);
 
-  const getVolunteerItemIndex = (volunterID) => {
+  // This function returns the index of the volunteer item in the list accoeding to the volunteerID
+  const getVolunteerItemIndex = (volunteerID) => {
 
     for (let currIndex = 0; currIndex < fullVolunteersInfo.length; currIndex++) {
 
-      if (fullVolunteersInfo[currIndex].id === volunterID) {
+      if (fullVolunteersInfo[currIndex].id === volunteerID) {
         return currIndex;
       }
     }
@@ -151,6 +155,7 @@ export default function ManageVolunteers({ navigation, route }) {
     return -1;
   }
 
+  // This function return the name of the user rank according to its number (from number rank => the rank name)
   const getUserRankString = (userRank) => {
 
     switch (userRank) {
@@ -170,6 +175,8 @@ export default function ManageVolunteers({ navigation, route }) {
     }
   }
 
+  // This function returns the render item / the card of the volunteer info after filling it with the volunteer info from
+  // the received item argumnet so we can display it in the flatlist
   const getListRenderItem = (item) => {
 
     return (
@@ -195,7 +202,7 @@ export default function ManageVolunteers({ navigation, route }) {
           <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>ת.ז: </Text>{item.personalID}</Text>
           <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>טל״ס: </Text>{item.phoneNumber}</Text>
           <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>דוא״ל: </Text>{item.email}</Text>
-          <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>סוג משתמש: </Text>{getUserRankString(item.rank)}</Text>
+          <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>סוג משתמש/ת: </Text>{getUserRankString(item.rank)}</Text>
 
 
         </View>
@@ -215,7 +222,7 @@ export default function ManageVolunteers({ navigation, route }) {
       <View style={styles.searchAndListContainer}>
         <TextInput style={styles.infoTextInputStyle} onChangeText={(searchString) => { updateListBySearch(searchString) }} placeholder="חיפוש"></TextInput>
 
-        <FlatList keyExtractor={(item, index) => item.id} showsVerticalScrollIndicator={false} style={styles.flatListStyle} data={volunteeresInfo} renderItem={({ item }) => { return getListRenderItem(item) }} />
+        <FlatList keyExtractor={(item, index) => index} showsVerticalScrollIndicator={false} style={styles.flatListStyle} data={volunteeresInfo} renderItem={({ item }) => { return getListRenderItem(item) }} />
       </View>
 
       <View style={styles.addButtonStyle}><TouchableOpacity style={styles.toucheableAddBStyle} onPress={() => navigation.navigate({ name: "AddVolunteer", params: { isForEdit: false, status: "none" }, merge: true })}><Text style={styles.addButtonTextStyle}>+</Text></TouchableOpacity></View>
@@ -225,6 +232,7 @@ export default function ManageVolunteers({ navigation, route }) {
   );
 }
 
+// These are the styles of the screen and the volunteers cards
 const styles = StyleSheet.create({
 
   background: {

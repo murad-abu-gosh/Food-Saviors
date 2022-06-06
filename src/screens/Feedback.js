@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import { Image, ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
-
-import Background from "../components/Background";
+import { ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
 import BackButton from "../components/BackButton";
 import { FlatList, TouchableOpacity } from "react-native-gesture-handler";
 import { getStatusBarHeight } from "react-native-status-bar-height";
@@ -14,18 +12,7 @@ import { auth } from "../config";
 
 export default function Feedback({ navigation, route }) {
 
-  // let [feedbacksInfo, setFeedbacksInfo] = useState([{ 
-  //   userID: "12345425",
-  //   title: "אוכל לא טריא",
-  //   date: "14-5-2022",
-  //   content: "הירקות והפירות במצב לא טוב צריך לבדוק את הקירור"
-  // }, {
-  //   userID: "21300",
-  //   title: "איחור בהגעת ההזמנה",
-  //   date: "11-12-2021",
-  //   content: "ההזמנות מיגיעות מאוחר מידי"
-  // }]);
-
+  // initializing the needed variables/useStates
   const [isLoading, setIsLoading] = useState(true);
 
   const [fullFeedbacksInfo, setFullFeedbacksInfo] = useState([]);
@@ -36,6 +23,7 @@ export default function Feedback({ navigation, route }) {
 
   const [IDsNamesMap, setIDsNamesMap] = useState(new Map());
 
+  // This function receives a searcing string and it fills the display list with the suitable items from the fullItemslist
   const updateListBySearch = (searchString) => {
 
     searchString = searchString.toLowerCase().trim();
@@ -62,7 +50,7 @@ export default function Feedback({ navigation, route }) {
       }
 
 
-      if(IDsNamesMap.get(currFeedbackInfoObj.userID).toLowerCase().includes(searchString) || getDateStr(currFeedbackInfoObj["date"]).includes(searchString)){
+      if (IDsNamesMap.get(currFeedbackInfoObj.userID).toLowerCase().includes(searchString) || getDateStr(currFeedbackInfoObj["date"]).includes(searchString)) {
         newFeedbacksList.push(currFeedbackInfoObj);
       }
 
@@ -72,7 +60,7 @@ export default function Feedback({ navigation, route }) {
 
   };
 
-
+  // This function fetches all the feedbacks data from the firebase and it stores them in the full and display lists
   const fetchAllFeedbacksDocuments = async () => {
 
     setFullFeedbacksInfo([]);
@@ -86,19 +74,9 @@ export default function Feedback({ navigation, route }) {
     setFeedbacksInfo(() => [...feedbacksList]);
   };
 
-  const getDateStr = (dateObj) => {
-
-    let dateString;
-
-    let dd = String(dateObj.getDate()).padStart(2, '0');
-    let mm = String(dateObj.getMonth() + 1).padStart(2, '0');
-    let yyyy = dateObj.getFullYear();
-
-    dateString = dd + '-' + mm + '-' + yyyy;
-
-    return dateString;
-};
-
+  // This useEffect runs just once when the screen opens 
+  // it fetches the data of the feedbacks from the firebase using the function fetchAllFeedbacksDocuments
+  // also it fetches the current volunter info so we can decide which actions the current user can apply according to his rank/permessions
   React.useEffect(() => {
 
     console.log(auth.currentUser.uid);
@@ -116,14 +94,15 @@ export default function Feedback({ navigation, route }) {
       fetchAllFeedbacksDocuments().then(() => {
 
         setIsLoading(() => false);
-  
+
       });
     });
 
-
-    
   }, []);
 
+  // This useEffect runs each time the variable status from the route changes so we acn make the proper action
+  // acording to the status value (update/create/delete)
+  // the actions is to modify the data (lists) according to the action that happend in the AddFeedback screen
   React.useEffect(() => {
     if (route.params?.status) {
 
@@ -167,8 +146,21 @@ export default function Feedback({ navigation, route }) {
 
   }, [route.params?.status]);
 
+  // This funtion returns a date string with the format dd-mm-yyyy using the given date object
+  const getDateStr = (dateObj) => {
 
+    let dateString;
 
+    let dd = String(dateObj.getDate()).padStart(2, '0');
+    let mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+    let yyyy = dateObj.getFullYear();
+
+    dateString = dd + '/' + mm + '/' + yyyy;
+
+    return dateString;
+  };
+
+  // This function buildes an (IDs, Names) Map so we can get the name of the feedback writer and display it 
   const buildUsersIDsNamesMap = async () => {
 
     const usersList = await fetchAllDocuments("users");
@@ -180,6 +172,7 @@ export default function Feedback({ navigation, route }) {
     });
   };
 
+  // This function returns the index of the feedback item in the list accoeding to the feedbackID
   const getFeedbackItemIndex = (feedbackID) => {
 
     for (let currIndex = 0; currIndex < fullFeedbacksInfo.length; currIndex++) {
@@ -193,6 +186,8 @@ export default function Feedback({ navigation, route }) {
     return -1;
   }
 
+  // This function returns the render item / the card of the dropArea info after filling it with the dropArea info from
+  // the received item argumnet so we can display it in the flatlist
   const getListRenderItem = (item) => {
 
     return (
@@ -244,6 +239,7 @@ export default function Feedback({ navigation, route }) {
   );
 }
 
+// These are the styles of the screen and the feedbacks cards
 const styles = StyleSheet.create({
 
   background: {

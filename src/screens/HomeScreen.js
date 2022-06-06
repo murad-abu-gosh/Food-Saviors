@@ -23,20 +23,20 @@ export default function HomeScreen({ navigation }) {
 
   const profileDefaultImageUri = Image.resolveAssetSource(require("../assets/profile_default_image.png")).uri;
 
-  const [currUserInfo, setCurrUserInfo] = useState({name: "", image: profileDefaultImageUri, personalID: "", email: "", phoneNumber: "", rank: 2});
+  const [currUserInfo, setCurrUserInfo] = useState({ name: "", image: profileDefaultImageUri, personalID: "", email: "", phoneNumber: "", rank: 2 });
 
-   const getUserRankString = (userRank) => {
+  const getUserRankString = (userRank) => {
 
     switch (userRank) {
 
       case 0:
         return "אחראי/ת המערכת";
 
-        case 1:
-          return "אדמין/ת";
+      case 1:
+        return "אדמין/ת";
 
       case 2:
-          return "מתנדב/ת";
+        return "מתנדב/ת";
 
       default:
         return "No Type";
@@ -48,21 +48,21 @@ export default function HomeScreen({ navigation }) {
 
     fetchDocumentById("users", auth.currentUser.uid).then((userInfoResult) => {
 
-      if(userInfoResult.isActive === false){
+      if (userInfoResult.isActive === false) {
 
         auth.signOut();
       } else {
 
-        let userJSONObj = {name: userInfoResult.name, image: userInfoResult.image === null? profileDefaultImageUri :  userInfoResult.image, personalID: userInfoResult.personalID, email: userInfoResult.email, phoneNumber: userInfoResult.phoneNumber, rank: userInfoResult.rank};
-        
+        let userJSONObj = { name: userInfoResult.name, image: userInfoResult.image === null ? profileDefaultImageUri : userInfoResult.image, personalID: userInfoResult.personalID, email: userInfoResult.email, phoneNumber: userInfoResult.phoneNumber, rank: userInfoResult.rank };
+
         setCurrUserInfo(() => userJSONObj);
       }
-    }); 
+    });
   }
 
   React.useEffect(() => {
 
-   getAndCheckUserInfo();
+    getAndCheckUserInfo();
 
   }, []);
 
@@ -86,7 +86,7 @@ export default function HomeScreen({ navigation }) {
               <View style={styles.headerContent}>
                 <Image
                   style={styles.avatar}
-                  source={{ uri: currUserInfo.image}}
+                  source={{ uri: currUserInfo.image }}
                 />
 
                 <Text style={styles.name}> {currUserInfo.name} </Text>
@@ -120,13 +120,14 @@ export default function HomeScreen({ navigation }) {
           style={styles.profileIcon}
         />
       </TouchableOpacity>
-      <View style={styles.buttonContainer}>
-        <SafeAreaView style={styles.LogoTextContainer}>
-        <Logo />
-          <Text style={styles.Text}>ניצול מזון : 12,000 ק''ג</Text>
+      <SafeAreaView style={styles.LogoTextContainer}>
+          <Logo />
+          {/* <Text style={styles.Text}>ניצול מזון : 12,000 ק''ג</Text> */}
 
-          
+
         </SafeAreaView>
+      <View style={styles.buttonContainer}>
+       
         {/* all the button  */}
         <TouchableOpacity
           onPress={() => navigation.navigate("ManageGoods")}
@@ -140,12 +141,12 @@ export default function HomeScreen({ navigation }) {
         >
           <Text style={styles.appButtonText}>ניהול פריטים</Text>
         </TouchableOpacity>
-        {/* <TouchableOpacity
+        <TouchableOpacity
           onPress={() => navigation.navigate("SeeStatistics")}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>צפו בסטטיסטיקה</Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={() => navigation.navigate("ManageVolunteers")}
           style={styles.appButtonContainer}
@@ -167,15 +168,6 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.appButtonText}>משובים</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => testFun()}
-          style={styles.appButtonContainer}
-        >
-          <Text style={styles.appButtonText}>משובים</Text>
-        </TouchableOpacity>
-
-       
-
       </View>
     </Background>
   );
@@ -193,6 +185,9 @@ const styles = StyleSheet.create({
   profileIcon: {
     width: 50,
     height: 50,
+    borderWidth: 2,
+    borderColor: "#1c6669",
+    borderRadius: 50
   },
   HiddenScreen: {
     flex: 1,
@@ -201,7 +196,7 @@ const styles = StyleSheet.create({
   ProfileScreen: {
     flex: 1,
     backgroundColor: "#ffffff",
-    borderWidth: 3, 
+    borderWidth: 3,
     borderColor: "#1c6669",
     margin: 40,
     padding: 10,
@@ -210,13 +205,13 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: "#baead2",
     borderRadius: 10,
-    borderWidth: 3, 
+    borderWidth: 3,
     borderColor: "#1c6669"
   },
   headerContent: {
     padding: 25,
     alignItems: "center",
-    
+
   },
   avatar: {
     width: 130,
@@ -244,7 +239,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "space-evenly",
-    padding: 16,
+    // padding: 16,
     width: "100%",
     borderRadius: 100
   },
@@ -255,7 +250,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    
+
     width: "90%"
   },
   appButtonText: {
@@ -275,7 +270,8 @@ const styles = StyleSheet.create({
   LogoTextContainer: {
     alignItems: "center",
     justifyContent: "center",
-    flexDirection: "column"
+    flexDirection: "column",
+    marginTop: 80
   },
   logOutButtonContainer: {
     alignSelf: "center",

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Image, ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { ActivityIndicator, Alert, ImageBackground, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { Modal } from "react-native-paper";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import BackButton from "../components/BackButton";
@@ -10,10 +9,9 @@ import { addNewDropArea, deleteDocumentById, updateDocumentById } from "../confi
 import { theme } from "../core/theme";
 
 
-
-
 export default function AddDropArea({ navigation, route }) {
 
+    // initializing the needed variables/useStates
     const [dropAreaID, setID] = useState("");
     const [dropAreaName, setName] = useState("");
     const [dropAreaAddress, setAddress] = useState("");
@@ -28,6 +26,8 @@ export default function AddDropArea({ navigation, route }) {
 
     const [isForEdit, setIsForEdit] = useState(route.params?.isForEdit);
 
+    // This useEffect runs when the screen opens it filles the input fieldes with the dropArea data in the case of edit
+    // which means that there is a variable called tempDropAreaInfo and it fills the indecator isForEdit so we can decide which components to display
     useEffect(() => {
 
         if (route.params?.tempDropAreaInfo) {
@@ -48,8 +48,9 @@ export default function AddDropArea({ navigation, route }) {
     }, [route.params?.tempDropAreaInfo]);
 
 
-
-
+    // This function runs when the user clicks on the save button 
+    // it takes care about the update and create cases
+    // also it checks the validity of the information using the function isValidInfo
     const onSaveButtonPressed = () => {
 
         if (!isValidInfo()) {
@@ -104,6 +105,8 @@ export default function AddDropArea({ navigation, route }) {
 
     };
 
+    // This function runs when the user clicks the delete button it shoes the user an alert if the user clicks yes
+    // the function calls the porper database function to delete the item from the firebase 
     const onDeleteButtonPressed = () => {
 
         Alert.alert(
@@ -138,6 +141,8 @@ export default function AddDropArea({ navigation, route }) {
 
     }
 
+    // This function checks if the inputs are valid and all th required fieldes are filled 
+    // if there is an error the function displays an error message with the proper instructions
     const isValidInfo = () => {
 
         let errorsString = "";
@@ -237,6 +242,7 @@ export default function AddDropArea({ navigation, route }) {
 
 }
 
+// styling the screen and the components
 const styles = StyleSheet.create({
 
     background: {
