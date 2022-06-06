@@ -27,6 +27,7 @@ import {
   addNewWasteRecord,
 } from "../config/database_interface";
 import { theme } from "../core/theme";
+import { getStatusBarHeight } from "react-native-status-bar-height";
 
 // const SecondPage = ({route}) => {
 //     return (
@@ -117,6 +118,8 @@ export default function ExportAndWaste({ navigation, route }) {
     });
     return result;
   };
+
+  const [mainStorageID, setMainStorageID] = useState("");
   React.useEffect(() => {
     if (route.params?.paramKey) {
       SetChangedData(route.params?.paramKey);
@@ -133,7 +136,14 @@ export default function ExportAndWaste({ navigation, route }) {
       } else {
         let drops = [];
         dropAreasInfo.forEach((drop) => {
-          drops.push({ label: drop.name, value: drop.id });
+          if (drop.isMainStorage === true) {
+            setMainStorageID(drop.id);
+          }
+          if (!(route.params?.paramKey.export && drop.isMainStorage)) {
+
+            drops.push({ label: drop.name, value: drop.id });
+          }
+
         });
         if (!route.params?.paramKey.export)
           drops.push({ label: "לפני הכניסה למחסן", value: -1 });
@@ -141,6 +151,8 @@ export default function ExportAndWaste({ navigation, route }) {
       }
     });
   }, [route.params?.paramKey]);
+
+
   // console.log("wheeeeee3" + JSON.stringify(route.params?.paramKey));
   console.log(route.params?.paramKey);
   console.log("drops", fetchDropAreasSorted());
@@ -166,9 +178,9 @@ export default function ExportAndWaste({ navigation, route }) {
     return (
       <View style={styles.background}>
         <ImageBackground style={styles.backgroundEdit}>
-          <SafeAreaView>
-            <Text style={styles.ScreenTitle}>מסך יצוא</Text>
-          </SafeAreaView>
+
+          <Text style={styles.ScreenTitle}>מסך יצוא</Text>
+
           <BackButton goBack={navigation.goBack} />
           <View style={styles.Container}>
             {/* <Text>{ListItems(route.params?.paramKey)}</Text> */}
@@ -181,37 +193,40 @@ export default function ExportAndWaste({ navigation, route }) {
                     <View style={styles.EveryItem}>
                       <Text style={styles.ItemTitle}>{item.Name}</Text>
                       <Text style={styles.ItemSub}>
-                        {item.amount} ארגזים לייצוא{"\n"}סך הכל במחסן ={" "}
+                        {item.amount} ארגזים לייצוא</Text>
+                      <Text style={styles.ItemSub}>סך הכל במחסן ={" "}
                         {parseInt(item.previousAmount) - parseInt(item.amount)}
                       </Text>
                     </View>
                   );
               }}
             />
-            {/* <View>
+
+          </View>
+          {/* <View>
               <Button title="Open" onPress={() => setOpen(true)} />
             </View> */}
-            <View>
-              <DropDownPicker
-                style={{
-                  borderColor: "#1c6669",
-                  borderBottomWidth: 2,
-                }}
-                textStyle={{
-                  fontSize: 15,
-                }}
-                showTickIcon={false}
-                placeholder="נקודת פיזור"
-                containerStyle={styles.dropDownStyle}
-                open={open}
-                value={value}
-                items={items}
-                setOpen={setOpen}
-                setValue={setValue}
-                setItems={setItems}
-              />
-            </View>
+          <View style={styles.DropContainer}>
+            <DropDownPicker
+              style={{
+                borderColor: "#1c6669",
+                borderBottomWidth: 2,
+              }}
+              textStyle={{
+                fontSize: 15,
+              }}
+              showTickIcon={false}
+              placeholder="נקודת פיזור"
+              containerStyle={styles.dropDownStyle}
+              open={open}
+              value={value}
+              items={items}
+              setOpen={setOpen}
+              setValue={setValue}
+              setItems={setItems}
+            />
           </View>
+
           <Pressable
             style={styles.ButtonView}
             onPress={() => {
@@ -283,9 +298,9 @@ export default function ExportAndWaste({ navigation, route }) {
     return (
       <View style={styles.background}>
         <ImageBackground style={styles.backgroundEdit}>
-          <SafeAreaView>
-            <Text style={styles.ScreenTitle}>מסך בזבוז</Text>
-          </SafeAreaView>
+
+          <Text style={styles.ScreenTitle}>מסך בזבוז</Text>
+
           <BackButton goBack={navigation.goBack} />
           <View style={styles.Container}>
             {/* <Text>{ListItems(route.params?.paramKey)}</Text> */}
@@ -298,7 +313,7 @@ export default function ExportAndWaste({ navigation, route }) {
                     <View style={styles.EveryItem}>
                       <Text style={styles.ItemTitle}>{item.Name}</Text>
                       <Text style={styles.ItemSub}>
-                        {item.amount} ארגזים לעדכן בענן
+                        {item.amount} ארגזים
                       </Text>
                     </View>
                   );
@@ -355,9 +370,10 @@ export default function ExportAndWaste({ navigation, route }) {
                 // let date = date().getDate();
                 console.log("today", today);
                 console.log("value", value);
+                console.log("value === mainStorageID", value === mainStorageID, value, mainStorageID);
                 // addNewExportRecord(userId, value, today, AddToDB);
 
-                addNewWasteRecord(userId, value, new Date(), AddToDB).then(
+                addNewWasteRecord(userId, value, new Date(), AddToDB, value === mainStorageID ? true : false).then(
                   () => {
                     navigation.navigate("ManageGoods");
                   }
@@ -476,7 +492,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   ItemSub: {
-    marginBottom: 4,
+    marginBottom: 0,
   },
   ButtonView: {
     marginTop: 5,
@@ -503,10 +519,10 @@ const styles = StyleSheet.create({
     // paddingHorizontal: 12,
   },
   ScreenTitle: {
-    // borderWidth: 20,
     textAlign: "center",
     fontSize: 24,
     fontWeight: "bold",
+    marginTop: getStatusBarHeight() + 10,
   },
   processingAlertContainer: {
     flexDirection: "column",

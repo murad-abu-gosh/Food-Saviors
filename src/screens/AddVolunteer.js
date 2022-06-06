@@ -85,7 +85,6 @@ export default function AddVolunteer({ navigation, route }) {
             mediaTypes: ImagePicker.MediaTypeOptions.All,
             allowsEditing: true,
             aspect: [4, 3],
-            quality: 0
         });
 
         if (!result.cancelled) {
