@@ -23,6 +23,8 @@ import BackButton from "../components/BackButton";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { theme } from "../core/theme";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { getStatusBarHeight } from "react-native-status-bar-height";
+import OurActivityIndicator from "../components/OurActivityIndicator";
 export default function ManageGoods({ navigation }) {
   const wait = (timeout) => {
     return new Promise((resolve) => setTimeout(resolve, timeout));
@@ -36,6 +38,8 @@ export default function ManageGoods({ navigation }) {
   //   }, []);
   // };
   const [refreshing, setRefreshing] = React.useState(false);
+
+  const [isLoading, setIsLoading] = useState(true);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -52,6 +56,7 @@ export default function ManageGoods({ navigation }) {
           ChangedData
         );
         setRefreshing(false);
+        setIsLoading(false);
       });
     }, []);
   });
@@ -78,14 +83,14 @@ export default function ManageGoods({ navigation }) {
       ChangedData.forEach((item) => {
         // console.log("if () > ()", parseInt(item.amount), parseInt(item.Storage));
         if (parseInt(item.amount) > parseInt(item.Storage)) {
-          setAlertContent(() => "לבחור כמות מהמחסן");
+          setAlertContent(() => "* אין מספיק סחורות");
           result = false;
         }
       });
     }
     ChangedData.forEach((item) => {
-      if (isNaN(parseInt(item.amount))) {
-        setAlertContent(() => "לכתוב רק מספרים");
+      if (isNaN(parseInt(item.amount)) || parseInt(item.amount) < 0) {
+        setAlertContent(() => "* נא לכתוב רק מספרים חיוביים");
         result = false;
       }
     });
@@ -135,17 +140,22 @@ export default function ManageGoods({ navigation }) {
   };
   React.useEffect(() => {
     const willFocusSubscription = navigation.addListener("focus", () => {
-      fetchItemsSorted().then((items) => {
-        itemsArray = items;
-        if (firstTime) updateChangedData();
-        else {
-          console.log(" inside else", items);
-          updateChangedDataByAmount(itemsArray);
-        }
-        console.log(
-          "changedData ======Inside useEffectLisener======",
-          ChangedData
-        );
+      setIsLoading(true);
+      wait(600).then(() => {
+        fetchItemsSorted().then((items) => {
+          itemsArray = items;
+          if (firstTime) updateChangedData();
+          else {
+            console.log(" inside else", items);
+            updateChangedDataByAmount(itemsArray);
+          }
+          console.log(
+            "changedData ======Inside useEffectLisener======",
+            ChangedData
+          );
+          setRefreshing(false);
+          setIsLoading(false);
+        });
       });
     });
     return willFocusSubscription;
@@ -155,7 +165,7 @@ export default function ManageGoods({ navigation }) {
     return (
       // <View style={styles.Every3Card}>
       <View style={styles.EveryCard} key={item.id}>
-        <Image style={styles.avatar} source={{ uri: item.Pic }} />
+        <Image  style={styles.avatar} source={{ uri: item.Pic }} />
         <View style={styles.AllText}>
           <Text style={styles.cardTitle}>{item.Name}</Text>
           <Text style={styles.cardSubTitle}>
@@ -183,9 +193,11 @@ export default function ManageGoods({ navigation }) {
         style={styles.background}
       >
         <BackButton goBack={navigation.goBack} />
-        <SafeAreaView>
-          <Text style={styles.ScreenTitle}>ניהול סחורות</Text>
-        </SafeAreaView>
+
+        {isLoading && <OurActivityIndicator/>}
+
+        <Text style={styles.ScreenTitle}>ניהול סחורות</Text>
+
         <View style={styles.Container} keyboardShouldPersistTaps="handled">
           <ScrollView
             contentContainerStyle={styles.scrollView}
@@ -299,11 +311,11 @@ const styles = StyleSheet.create({
     padding: 0,
     marginLeft: 12,
     alignSelf: "center",
-    // flex: 1,
+    // flex: 3,
     // justifyContent: "flex-start",
-    resizeMode: "contain",
+   
     width: 80,
-    height: 80,
+    height: 70,
     marginTop: 5,
     marginBottom: 5,
     borderRadius: 3,
@@ -373,18 +385,18 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   bottomText: {
-    textAlignVertical: "center",
-    justifyContent: "center",
-    // borderColor: "#006d77",
-    borderRadius: 20,
-    // borderWidth: 3,
-    height: "100%",
-    textAlign: "center",
     alignSelf: "center",
-    fontSize: 20,
-    // width:"30%",
+    fontSize: 33,
     color: "#006d77",
+    // textShadowColor: "rgba(0, 0, 0, 0.2)",
+    // textShadowOffset: { width: -1, height: 1 },
+    // textShadowRadius: 10,
+    // width:"30%",
+    // color: "green",
+    // borderColor: "#006d77",
+    // borderWidth: 2,
     fontWeight: "bold",
+    fontSize: 20,
   },
   bottomText2: {
     alignSelf: "center",
@@ -442,6 +454,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 24,
     fontWeight: "bold",
+    marginTop: getStatusBarHeight() + 10,
   },
   alertContainer: {
     flexDirection: "column",

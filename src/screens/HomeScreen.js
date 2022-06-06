@@ -35,6 +35,8 @@ export default function HomeScreen({ navigation }) {
 
   const [currUserInfo, setCurrUserInfo] = useState({ name: "", image: profileDefaultImageUri, personalID: "", email: "", phoneNumber: "", rank: 2 });
 
+  const [isAdmin, setIsAdmin] = useState(false);
+
   const getUserRankString = (userRank) => {
 
     switch (userRank) {
@@ -66,6 +68,10 @@ export default function HomeScreen({ navigation }) {
         let userJSONObj = { name: userInfoResult.name, image: userInfoResult.image === null ? profileDefaultImageUri : userInfoResult.image, personalID: userInfoResult.personalID, email: userInfoResult.email, phoneNumber: userInfoResult.phoneNumber, rank: userInfoResult.rank };
 
         setCurrUserInfo(() => userJSONObj);
+
+        if(currUserInfo.rank <= 1){
+          setIsAdmin(true);
+        }
       }
     });
   }
@@ -106,7 +112,7 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.ProfileDetails}> ת.ז: {currUserInfo.personalID} </Text>
               <Text style={styles.ProfileDetails}> דוא״ל: {currUserInfo.email}</Text>
               <Text style={styles.ProfileDetails}> טל״ס: {currUserInfo.phoneNumber}</Text>
-              <Text style={styles.ProfileDetails}>סוג משתמש: {getUserRankString(currUserInfo.rank)}</Text>
+              <Text style={styles.ProfileDetails}>סוג משתמש/ת: {getUserRankString(currUserInfo.rank)}</Text>
             </View>
             <TouchableOpacity
               onPress={() => auth.signOut()}
@@ -135,7 +141,7 @@ export default function HomeScreen({ navigation }) {
           {/* <Text style={styles.Text}>ניצול מזון : 12,000 ק''ג</Text> */}
 
 
-        </SafeAreaView>
+      </SafeAreaView>
       <View style={styles.buttonContainer}>
        
         {/* all the button  */}
@@ -145,31 +151,35 @@ export default function HomeScreen({ navigation }) {
         >
           <Text style={styles.appButtonText}>ניהול סחורות</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("ManageItems")}
-          style={styles.appButtonContainer}
-        >
-          <Text style={styles.appButtonText}>ניהול פריטים</Text>
-        </TouchableOpacity>
+
         <TouchableOpacity
           onPress={() => navigation.navigate("SeeStatistics")}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>צפו בסטטיסטיקה</Text>
         </TouchableOpacity>
+
+
         <TouchableOpacity
+          onPress={() => navigation.navigate("ManageItems")}
+          style={styles.appButtonContainer}
+        >
+          <Text style={styles.appButtonText}>ניהול פריטים</Text>
+        </TouchableOpacity>
+
+       { isAdmin &&  <TouchableOpacity
           onPress={() => navigation.navigate("ManageVolunteers")}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>ניהול מתנדבים</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> }
 
-        <TouchableOpacity
+        { isAdmin && <TouchableOpacity
           onPress={() => navigation.navigate("ManageDropArea")}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>ניהול נקודות פיזור</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> }
 
         <TouchableOpacity
           onPress={() => navigation.navigate("Feedback")}
@@ -213,7 +223,7 @@ const styles = StyleSheet.create({
     borderRadius: 10
   },
   header: {
-    backgroundColor: "#baead2",
+   
     borderRadius: 10,
     borderWidth: 3,
     borderColor: "#1c6669"
@@ -221,7 +231,7 @@ const styles = StyleSheet.create({
   headerContent: {
     padding: 25,
     alignItems: "center",
-
+    
   },
   avatar: {
     width: 130,
@@ -251,7 +261,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     // padding: 16,
     width: "100%",
-    borderRadius: 100
+    borderRadius: 100,
   },
   appButtonContainer: {
     alignSelf: "center",

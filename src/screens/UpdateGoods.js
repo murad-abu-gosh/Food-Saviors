@@ -22,6 +22,7 @@ import {
   addNewImportRecord,
   addNewDeleteRecord,
 } from "../config/database_interface";
+import { getStatusBarHeight } from "react-native-status-bar-height";
 function isEmpty(data) {
   let result = true;
   data.forEach((item) => {
@@ -56,9 +57,9 @@ export default function UpdateGoods({ navigation, route }) {
   if (isEmpty(data)) {
     return (
       <ImageBackground style={styles.backgroundEdit}>
-        <SafeAreaView>
-          <Text style={styles.ScreenTitle}>עדכון מחסן</Text>
-        </SafeAreaView>
+
+        <Text style={styles.ScreenTitle}>עדכון מחסן</Text>
+
         <BackButton goBack={navigation.goBack} />
         <View>
           <Text
@@ -75,9 +76,9 @@ export default function UpdateGoods({ navigation, route }) {
     return (
       <View style={styles.background}>
         <ImageBackground style={styles.backgroundEdit}>
-          <SafeAreaView>
-            <Text style={styles.ScreenTitle}>עדכון מחסן</Text>
-          </SafeAreaView>
+
+          <Text style={styles.ScreenTitle}>עדכון מחסן</Text>
+
           <BackButton goBack={navigation.goBack} />
           <View style={styles.Container}>
             {/* <Text>{ListItems(route.params?.paramKey)}</Text> */}
@@ -147,9 +148,9 @@ export default function UpdateGoods({ navigation, route }) {
     return (
       <View style={styles.background}>
         <ImageBackground style={styles.backgroundEdit}>
-          <SafeAreaView>
-            <Text style={styles.ScreenTitle}>עדכון מחסן</Text>
-          </SafeAreaView>
+
+          <Text style={styles.ScreenTitle}>עדכון מחסן</Text>
+
           <BackButton goBack={navigation.goBack} />
           <View style={styles.Container}>
             {/* <Text>{ListItems(route.params?.paramKey)}</Text> */}
@@ -163,7 +164,9 @@ export default function UpdateGoods({ navigation, route }) {
                       <Text style={styles.ItemTitle}>{item.Name}</Text>
                       <Text style={styles.ItemSub}>
                         {parseInt(item.amount)} ארגזים להוסיר ממחסן
-                        {"\n"}סך הכל ={" "}
+                      </Text>
+                      <Text style={styles.ItemSub}>
+                        סך הכל ={" "}
                         {parseInt(item.previousAmount) - parseInt(item.amount)}
                       </Text>
                     </View>
@@ -295,10 +298,10 @@ const styles = StyleSheet.create({
     // paddingHorizontal: 12,
   },
   ScreenTitle: {
-    // borderWidth: 20,
     textAlign: "center",
     fontSize: 24,
     fontWeight: "bold",
+    marginTop: getStatusBarHeight() + 10,
   },
   processingAlertContainer: {
     flexDirection: "column",
