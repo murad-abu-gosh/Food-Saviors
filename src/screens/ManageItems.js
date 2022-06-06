@@ -6,6 +6,7 @@ import Items from "../components/Items";
 
 import {
   fetchItemsSorted,
+  updateItem,
   addNewItem,
   updateDocumentById,
   deleteItem,
@@ -159,7 +160,7 @@ export default function ManageItems({ navigation }) {
     }
 
     let editField = { name: Name, average_weight: parseFloat(Weight), image: image };
-    updateDocumentById("items", List_id[index], editField);
+    updateItem(List_id[index], editField);
     // if (!Name.trim() || !Weight.trim()) {
     //   Alert.alert("שגיאה ", "תבדוק שהטקסט אינו רק !!", [{ text: "תמשיך" }]);
     //   return;
