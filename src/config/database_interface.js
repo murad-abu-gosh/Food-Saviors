@@ -572,8 +572,9 @@ async function isValidItemsAmounts(recordArray) {
       }
     }
 
-    return true;
   });
+  
+  return true;
 }
 
 export async function addNewExportRecord(exportUserID, exportDropAreaID, exportDate, recordArray) {
