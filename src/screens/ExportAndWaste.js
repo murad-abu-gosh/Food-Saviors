@@ -107,7 +107,8 @@ export default function ExportAndWaste({ navigation, route }) {
   const [value, setValue] = useState(null);
   const [items, setItems] = useState([]);
 
-  const BeforeStorage = (data) => {
+  const moreThanStorage = (data) => {
+    // const BeforeStorage = (data) => {
     console.log("BeforeStorage data", data);
     let result = false;
     data.forEach((item) => {
