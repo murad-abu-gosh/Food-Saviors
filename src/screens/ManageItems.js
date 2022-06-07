@@ -6,6 +6,7 @@ import Items from "../components/Items";
 
 import {
   fetchItemsSorted,
+  updateItem,
   addNewItem,
   updateDocumentById,
   deleteItem,
@@ -159,7 +160,7 @@ export default function ManageItems({ navigation }) {
     }
 
     let editField = { name: Name, average_weight: parseFloat(Weight), image: image };
-    updateDocumentById("items", List_id[index], editField);
+    updateItem(List_id[index], editField);
     // if (!Name.trim() || !Weight.trim()) {
     //   Alert.alert("שגיאה ", "תבדוק שהטקסט אינו רק !!", [{ text: "תמשיך" }]);
     //   return;
@@ -223,7 +224,6 @@ export default function ManageItems({ navigation }) {
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 0,
     });
 
     if (!result.cancelled) {
@@ -235,7 +235,7 @@ export default function ManageItems({ navigation }) {
     return (
       <TouchableOpacity
         key={index}
-        onPress={() =>
+        onLongPress={() =>
           setModalVisibleItem(true) ||
           setModalindex(index) ||
           setShowText(true) ||
@@ -321,6 +321,7 @@ export default function ManageItems({ navigation }) {
                     style={styles.input}
                     placeholder={String(WeightList[modalindex])}
                     //  value={WeightList[modalindex]}
+                    keyboardType="number-pad"
                     onChangeText={(text) => setWeight(text)}
                   />
                 </View>
@@ -473,6 +474,7 @@ export default function ManageItems({ navigation }) {
                 style={styles.input}
                 placeholder={"משקל..."}
                 value={Weight.toString()}
+                keyboardType="number-pad"
                 onChangeText={(text) => setWeight(text)}
               />
               {/* <TextInput style={styles.input} placeholder={"עוד..."} /> */}
@@ -703,8 +705,9 @@ const styles = StyleSheet.create({
     left: 4,
   },
   BackButton_Image: {
-    width: 24,
-    height: 24,
+    width: 30,
+    height: 30,
+    marginLeft: 10
   },
   addButtonStyle: {
     position: "absolute",

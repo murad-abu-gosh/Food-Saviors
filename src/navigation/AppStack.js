@@ -13,6 +13,7 @@ import {
   ManageItems,
   ManageVolunteers,
   SeeStatistics,
+  StatisticsDisplay,
   UpdateGoods
  
 } from "../screens";
@@ -35,6 +36,7 @@ export const AppStack = () => {
       <Stack.Screen name="Feedback" component={Feedback} />
       <Stack.Screen name="AddFeedback" component={AddFeedback} />
       <Stack.Screen name="SeeStatistics" component={SeeStatistics} />
+      <Stack.Screen name="StatisticsDisplay" component={StatisticsDisplay} />
       <Stack.Screen name="UpdateGoods" component={UpdateGoods} />
       <Stack.Screen name="ExportAndWaste" component={ExportAndWaste} />
       

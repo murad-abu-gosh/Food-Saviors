@@ -1,20 +1,19 @@
 import React, { useState } from "react";
-import { Alert, Image, ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Image, ImageBackground, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
-import { TouchableOpacity } from "react-native-gesture-handler";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import BackButton from "../components/BackButton";
 import KeyboardAvoidingWrapper from "../components/KeyboardAvoidingWrapper";
 import { theme } from "../core/theme";
 import * as ImagePicker from "expo-image-picker";
-import { createNewUser, deleteDocumentById, deleteUser, fetchDocumentById, updateDocumentById, updateUser } from "../config/database_interface";
+import { createNewUser, deleteUser, fetchDocumentById, updateUser } from "../config/database_interface";
 import { auth, Colors } from "../config";
 import { ActivityIndicator, Modal } from "react-native-paper";
 
 export default function AddVolunteer({ navigation, route }) {
 
+    // initializing the needed variables/useStates
     const addPicImageURI = Image.resolveAssetSource(require("../assets/addImagePic2.png")).uri;
-
     const [volunterID, setID] = useState("");
     const [volunteerPersonalID, setPersonalID] = useState("");
     const [volunteerImageUri, setImage] = useState(addPicImageURI);
@@ -33,7 +32,7 @@ export default function AddVolunteer({ navigation, route }) {
         { label: 'מתנדב/ת', value: 2 }
     ]);
 
-    const [dropDownPlaceholder, setDropDownPlaceholder] = useState("סוג משתמש");
+    const [dropDownPlaceholder, setDropDownPlaceholder] = useState("סוג משתמש/ת");
 
     const [isForEdit, setIsForEdit] = useState(false);
 
@@ -45,23 +44,47 @@ export default function AddVolunteer({ navigation, route }) {
 
     const [isProcessing, setIsProcessing] = useState(false);
 
+    // This useEffect runs just once when the screens open it fetches the current volunteer info so we can decide which actions the 
+    // current user can apply according to his rank/permessions
     React.useEffect(() => {
 
         fetchDocumentById("users", auth.currentUser.uid).then((currUserInfo) => {
             console.log(currUserInfo);
             setIsHeadAdmin(() => (currUserInfo.rank === 0));
-
-            console.log(isHeadAdmin);
         });
     }, []);
 
+
+    // This useEffect runs when the screen opens it filles the input fieldes with the volunteer data in the case of edit
+    // which means that there is a variable called tempVolunteerInfo and it fills the indecator isForEdit so we can decide which components to display
+    React.useEffect(() => {
+        if (route.params?.tempVolunteerInfo) {
+
+            let currVolunterInfo = route.params?.tempVolunteerInfo;
+
+            setID(currVolunterInfo.id);
+            setImage((currVolunterInfo.image === null) ? addPicImageURI : currVolunterInfo.image);
+            setFullName(currVolunterInfo.name);
+            setPersonalID(currVolunterInfo.personalID);
+            setPhoneNumber(currVolunterInfo.phoneNumber);
+            setEmail(currVolunterInfo.email);
+            setRank(currVolunterInfo.rank);
+            setValue(currVolunterInfo.rank);
+            setDropDownPlaceholder(getUserRankString(currVolunterInfo.rank));
+        }
+
+        if (route.params?.isForEdit) {
+            setIsForEdit(true);
+        }
+    }, [route.params?.tempVolunteerInfo]);
+
+    // This function enables the user to pick an image 
     const pickImage = async () => {
 
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
             allowsEditing: true,
             aspect: [4, 3],
-            quality: 0
         });
 
         if (!result.cancelled) {
@@ -69,6 +92,9 @@ export default function AddVolunteer({ navigation, route }) {
         }
     };
 
+    // This function runs when the user clicks on the save button 
+    // it takes care about the update and create cases
+    // also it checks the validity of the information using the function isValidInfo
     const onSaveButtonPressed = () => {
 
         if (!isValidInfo()) {
@@ -87,8 +113,6 @@ export default function AddVolunteer({ navigation, route }) {
             "rank": volunteerRank
         };
 
-        console.log("Image URi Local: " + updatedUserJSON.image);
-
         if (isForEdit) {
 
 
@@ -104,54 +128,27 @@ export default function AddVolunteer({ navigation, route }) {
                 setAlertContent("* נא לבדוק שיש חיבור לאינטרנט או לנסות מאוחר יותר");
                 setIsProcessing(false);
                 setIsAlertVisible(true);
-
-                console.log("update failed");
             });
 
         } else {
 
-            console.log("***********************");
-            console.log(updatedUserJSON);
-
             createNewUser(updatedUserJSON.email, volunteerPassword, volunteerFullName, volunteerPersonalID, volunteerPhoneNumber, updatedUserJSON.image, volunteerRank).then((newVolunteerID) => {
 
-                console.log("Hello: " + newVolunteerID);
                 updatedUserJSON["id"] = newVolunteerID;
                 navigation.navigate({ name: 'ManageVolunteers', params: { tempVolunteerInfo: updatedUserJSON, status: "created" } });
-            }).catch((E) => {
-
-                console.log(E);
+            }).catch(() => {
 
                 setAlertTitle("שגיאה בהעלאת הנתונים");
                 setAlertContent("* נא לבדוק שיש חיבור לאינטרנט או לנסות מאוחר יותר");
                 setIsProcessing(false);
                 setIsAlertVisible(true);
-
-                console.log("create failed");
             });
         }
 
     };
 
-    const getUserRankString = (userRank) => {
-
-        switch (userRank) {
-
-            case 0:
-                return "אחראי/ת המערכת";
-
-            case 1:
-                return "אדמין/ת";
-
-            case 2:
-                return "מתנדב/ת";
-
-            default:
-                return "No Type";
-
-        }
-    }
-
+    // This function runs when the user clicks the delete button it shoes the user an alert if the user clicks yes
+    // the function calls the porper database function to delete the item from the firebase 
     const onDeleteButtonPressed = () => {
         /// T-Shirt
 
@@ -190,6 +187,28 @@ export default function AddVolunteer({ navigation, route }) {
 
     }
 
+    // This function return the name of the user rank according to its number (from number rank => the rank name)
+    const getUserRankString = (userRank) => {
+
+        switch (userRank) {
+
+            case 0:
+                return "אחראי/ת המערכת";
+
+            case 1:
+                return "אדמין/ת";
+
+            case 2:
+                return "מתנדב/ת";
+
+            default:
+                return "No Type";
+
+        }
+    }
+
+    // This function checks if the inputs are valid and all th required fieldes are filled 
+    // if there is an error the function displays an error message with the proper instructions
     const isValidInfo = () => {
 
         let errorsString = "";
@@ -251,47 +270,18 @@ export default function AddVolunteer({ navigation, route }) {
         return true;
     }
 
-    React.useEffect(() => {
-        if (route.params?.tempVolunteerInfo) {
-
-            let currVolunterInfo = route.params?.tempVolunteerInfo;
-
-            setID(currVolunterInfo.id);
-            setImage((currVolunterInfo.image === null) ? addPicImageURI : currVolunterInfo.image);
-            setFullName(currVolunterInfo.name);
-            setPersonalID(currVolunterInfo.personalID);
-            setPhoneNumber(currVolunterInfo.phoneNumber);
-            setEmail(currVolunterInfo.email);
-            setRank(currVolunterInfo.rank);
-            setValue(currVolunterInfo.rank);
-            setDropDownPlaceholder(getUserRankString(currVolunterInfo.rank));
-        }
-
-        if (route.params?.isForEdit) {
-            setIsForEdit(true);
-        }
-    }, [route.params?.tempVolunteerInfo]);
 
     return (
 
         <View style={styles.background}>
 
-
-
-
-
             <ImageBackground source={require("../assets/background_dot.png")} resizeMode="repeat" style={styles.background}>
-
-
 
                 <BackButton goBack={navigation.goBack}></BackButton>
 
                 <KeyboardAvoidingWrapper>
 
-
-
                     <View style={styles.volunteerInfoInputContainer}>
-
 
                         <TouchableOpacity style={styles.toucheableImageContainer} onPress={pickImage}><Image style={styles.volunteerCircleImageStyle} source={{ uri: volunteerImageUri }}></Image></TouchableOpacity>
 
@@ -305,10 +295,7 @@ export default function AddVolunteer({ navigation, route }) {
 
                         <TextInput style={[styles.infoTextInputStyle, { display: isForEdit ? "none" : "flex" }]} onChangeText={(value) => setPassword(value)} placeholder="סיסמה" keyboardType="name-phone-pad" secureTextEntry={true}></TextInput>
 
-
-
                     </View>
-
 
                 </KeyboardAvoidingWrapper>
 
@@ -386,6 +373,7 @@ export default function AddVolunteer({ navigation, route }) {
 
 }
 
+// styling the screen and the components
 const styles = StyleSheet.create({
 
     background: {

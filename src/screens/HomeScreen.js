@@ -13,8 +13,18 @@ import {
 import Background from "../components/Background";
 import Logo from "../components/Logo";
 import { auth } from "../config";
-import { fetchDocumentById } from "../config/database_interface";
-import '../config/GlobalData.js'
+import { fetchDocumentById, fetchImportRecordsSorted, getGeneralStatisticsArray } from "../config/database_interface";
+
+
+// async function testFun() {
+//   const sevenDaysAgo: Date = new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000)  
+//   // let fromDate = new Date();
+//   // let toDate = new Date();
+//   // console.log("7 days ago: ", sevenDaysAgo);
+//   // console.log("from date: ", fromDate);
+//   // console.log("to date: ", toDate);
+//   console.log(await getGeneralStatisticsArray(null, sevenDaysAgo));
+// }
 
 export default function HomeScreen({ navigation }) {
 
@@ -23,20 +33,22 @@ export default function HomeScreen({ navigation }) {
 
   const profileDefaultImageUri = Image.resolveAssetSource(require("../assets/profile_default_image.png")).uri;
 
-  const [currUserInfo, setCurrUserInfo] = useState({name: "", image: profileDefaultImageUri, personalID: "", email: "", phoneNumber: "", rank: 2});
+  const [currUserInfo, setCurrUserInfo] = useState({ name: "", image: profileDefaultImageUri, personalID: "", email: "", phoneNumber: "", rank: 2 });
 
-   const getUserRankString = (userRank) => {
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const getUserRankString = (userRank) => {
 
     switch (userRank) {
 
       case 0:
         return "אחראי/ת המערכת";
 
-        case 1:
-          return "אדמין/ת";
+      case 1:
+        return "אדמין/ת";
 
       case 2:
-          return "מתנדב/ת";
+        return "מתנדב/ת";
 
       default:
         return "No Type";
@@ -48,21 +60,25 @@ export default function HomeScreen({ navigation }) {
 
     fetchDocumentById("users", auth.currentUser.uid).then((userInfoResult) => {
 
-      if(userInfoResult.isActive === false){
+      if (userInfoResult.isActive === false) {
 
         auth.signOut();
       } else {
 
-        let userJSONObj = {name: userInfoResult.name, image: userInfoResult.image === null? profileDefaultImageUri :  userInfoResult.image, personalID: userInfoResult.personalID, email: userInfoResult.email, phoneNumber: userInfoResult.phoneNumber, rank: userInfoResult.rank};
-        
+        let userJSONObj = { name: userInfoResult.name, image: userInfoResult.image === null ? profileDefaultImageUri : userInfoResult.image, personalID: userInfoResult.personalID, email: userInfoResult.email, phoneNumber: userInfoResult.phoneNumber, rank: userInfoResult.rank };
+
         setCurrUserInfo(() => userJSONObj);
+
+        if(userJSONObj.rank <= 1){
+          setIsAdmin(true);
+        }
       }
-    }); 
+    });
   }
 
   React.useEffect(() => {
 
-   getAndCheckUserInfo();
+    getAndCheckUserInfo();
 
   }, []);
 
@@ -86,7 +102,7 @@ export default function HomeScreen({ navigation }) {
               <View style={styles.headerContent}>
                 <Image
                   style={styles.avatar}
-                  source={{ uri: currUserInfo.image}}
+                  source={{ uri: currUserInfo.image }}
                 />
 
                 <Text style={styles.name}> {currUserInfo.name} </Text>
@@ -96,7 +112,7 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.ProfileDetails}> ת.ז: {currUserInfo.personalID} </Text>
               <Text style={styles.ProfileDetails}> דוא״ל: {currUserInfo.email}</Text>
               <Text style={styles.ProfileDetails}> טל״ס: {currUserInfo.phoneNumber}</Text>
-              <Text style={styles.ProfileDetails}>סוג משתמש: {getUserRankString(currUserInfo.rank)}</Text>
+              <Text style={styles.ProfileDetails}>סוג משתמש/ת: {getUserRankString(currUserInfo.rank)}</Text>
             </View>
             <TouchableOpacity
               onPress={() => auth.signOut()}
@@ -120,13 +136,14 @@ export default function HomeScreen({ navigation }) {
           style={styles.profileIcon}
         />
       </TouchableOpacity>
-      <View style={styles.buttonContainer}>
-        <SafeAreaView style={styles.LogoTextContainer}>
-        <Logo />
-          <Text style={styles.Text}>ניצול מזון : 12,000 ק''ג</Text>
+      <SafeAreaView style={styles.LogoTextContainer}>
+          <Logo />
+          {/* <Text style={styles.Text}>ניצול מזון : 12,000 ק''ג</Text> */}
 
-          
-        </SafeAreaView>
+
+      </SafeAreaView>
+      <View style={styles.buttonContainer}>
+       
         {/* all the button  */}
         <TouchableOpacity
           onPress={() => navigation.navigate("ManageGoods")}
@@ -134,31 +151,35 @@ export default function HomeScreen({ navigation }) {
         >
           <Text style={styles.appButtonText}>ניהול סחורות</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate("SeeStatistics")}
+          style={styles.appButtonContainer}
+        >
+          <Text style={styles.appButtonText}>צפו בסטטיסטיקה</Text>
+        </TouchableOpacity>
+
+
         <TouchableOpacity
           onPress={() => navigation.navigate("ManageItems")}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>ניהול פריטים</Text>
         </TouchableOpacity>
-        {/* <TouchableOpacity
-          onPress={() => navigation.navigate("SeeStatistics")}
-          style={styles.appButtonContainer}
-        >
-          <Text style={styles.appButtonText}>צפו בסטטיסטיקה</Text>
-        </TouchableOpacity> */}
-        <TouchableOpacity
+
+       { isAdmin &&  <TouchableOpacity
           onPress={() => navigation.navigate("ManageVolunteers")}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>ניהול מתנדבים</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> }
 
-        <TouchableOpacity
+        { isAdmin && <TouchableOpacity
           onPress={() => navigation.navigate("ManageDropArea")}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>ניהול נקודות פיזור</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> }
 
         <TouchableOpacity
           onPress={() => navigation.navigate("Feedback")}
@@ -166,15 +187,6 @@ export default function HomeScreen({ navigation }) {
         >
           <Text style={styles.appButtonText}>משובים</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => testFun()}
-          style={styles.appButtonContainer}
-        >
-          <Text style={styles.appButtonText}>משובים</Text>
-        </TouchableOpacity>
-
-       
 
       </View>
     </Background>
@@ -193,6 +205,9 @@ const styles = StyleSheet.create({
   profileIcon: {
     width: 50,
     height: 50,
+    borderWidth: 2,
+    borderColor: "#1c6669",
+    borderRadius: 50
   },
   HiddenScreen: {
     flex: 1,
@@ -201,16 +216,16 @@ const styles = StyleSheet.create({
   ProfileScreen: {
     flex: 1,
     backgroundColor: "#ffffff",
-    borderWidth: 3, 
+    borderWidth: 3,
     borderColor: "#1c6669",
     margin: 40,
     padding: 10,
     borderRadius: 10
   },
   header: {
-    backgroundColor: "#baead2",
+   
     borderRadius: 10,
-    borderWidth: 3, 
+    borderWidth: 3,
     borderColor: "#1c6669"
   },
   headerContent: {
@@ -244,9 +259,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "space-evenly",
-    padding: 16,
+    // padding: 16,
     width: "100%",
-    borderRadius: 100
+    borderRadius: 100,
   },
   appButtonContainer: {
     alignSelf: "center",
@@ -255,7 +270,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    
+
     width: "90%"
   },
   appButtonText: {
@@ -275,7 +290,8 @@ const styles = StyleSheet.create({
   LogoTextContainer: {
     alignItems: "center",
     justifyContent: "center",
-    flexDirection: "column"
+    flexDirection: "column",
+    marginTop: 80
   },
   logOutButtonContainer: {
     alignSelf: "center",
