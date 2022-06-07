@@ -69,7 +69,7 @@ export default function HomeScreen({ navigation }) {
 
         setCurrUserInfo(() => userJSONObj);
 
-        if(currUserInfo.rank <= 1){
+        if(userJSONObj.rank <= 1){
           setIsAdmin(true);
         }
       }

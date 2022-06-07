@@ -571,7 +571,9 @@ async function isValidItemsAmounts(recordArray) {
         }
       }
     }
+
   });
+
 
   return true;
 }
