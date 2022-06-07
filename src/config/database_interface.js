@@ -631,7 +631,7 @@ export async function addNewDeleteRecord(recordUserID, recordDate, recordArray) 
 
 export async function addNewWasteRecord(recordUserID, wasteDropAreaID, wasteDate, recordArray, isMainStorage = false) {
 
-  if(isMainStorage){
+  if (isMainStorage) {
 
     let isValid = await isValidItemsAmounts(recordArray);
 
@@ -681,7 +681,7 @@ export async function fetchWasteRecordsSorted(fromDate = null, toDate = null) {
 }
 
 export async function fetchAreaWasteRecordsSorted(fromDate = null, toDate = null, areaID) {
-  let qry = getQueryFromDatesAndArea(fromDate, toDate, areaID, 'exportGoodsRecords');
+  let qry = getQueryFromDatesAndArea(fromDate, toDate, areaID, 'goodsWasteRecords');
 
   let Mycollection = await getDocs(qry);
   let arr = [];
@@ -719,7 +719,7 @@ async function compressImage(imageURI) {
   const resizedPhoto = await manipulateAsync(
     imageURI,
     [{ resize: { width: 300 } }], // resize to width of 300 and preserve aspect ratio 
-    { compress: 0.7, format: "jpeg"},
+    { compress: 0.7, format: "jpeg" },
   );
   return resizedPhoto.uri;
 }
@@ -868,8 +868,10 @@ function calculateExportRecord(record, dictionary) {
 }
 
 function calculateWasteRecord(record, dictionary) {
+  console.log("record: ", record);
+  console.log("dictionary: ", dictionary);
 
-  let recordMap = record.itemsToAmounts; 
+  let recordMap = record.itemsToAmounts;
   const itemsIDs = Object.keys(dictionary);
   if (!recordMap) return;
   itemsIDs.forEach((key, index) => {
@@ -922,8 +924,8 @@ export async function getGeneralStatisticsArray(fromDate = null, toDate = null) 
   items.forEach((item) => {
     // console.log("adding " + item.id);
     importsDictionary[item.id] = 0;
-    exportsDictionary[item.id] = 0;
     deletesDictionary[item.id] = 0;
+    exportsDictionary[item.id] = 0;
     wastesDictionary[item.id] = 0;
   });
 
@@ -949,7 +951,7 @@ export async function getGeneralStatisticsArray(fromDate = null, toDate = null) 
   return itemsFinalArray;
 }
 
-export async function getDropAreaStatistics(fromDate = null, toDate = null, dropAreaID) {
+export async function getDropAreaStatistics(fromDate = null, toDate = null, dropAreaID, isMainStorage = false) {
 
   if (fromDate) {
     fromDate.setHours(0, 0, 0, 0);
@@ -958,32 +960,66 @@ export async function getDropAreaStatistics(fromDate = null, toDate = null, drop
     toDate.setHours(23, 59, 59, 0);
   }
   console.log("Fetching statistics of areaID ", dropAreaID, " from date: ", fromDate, ", to date: ", toDate);
+
+  let importRecords;
+  let deleteRecords;
+
+  if (isMainStorage) {
+    importRecords = await fetchImportRecordsSorted(fromDate, toDate);
+    deleteRecords = await fetchDeleteRecordsSorted(fromDate, toDate);
+  }
+
   let exportRecords = await fetchAreaExportRecordsSorted(fromDate, toDate, dropAreaID);
   let wasteRecords = await fetchAreaWasteRecordsSorted(fromDate, toDate, dropAreaID);
   let items = await fetchItemsSorted();
   let itemsIDs = Object.keys(items);
 
+  let importsDictionary = {};
+  let deletesDictionary = {};
   let exportsDictionary = {};
   let wastesDictionary = {};
 
   items.forEach((item) => {
     // console.log("adding " + item.id);
+    if (isMainStorage) {
+      importsDictionary[item.id] = 0;
+      deletesDictionary[item.id] = 0;
+    }
+
     exportsDictionary[item.id] = 0;
     wastesDictionary[item.id] = 0;
   });
 
+  if(isMainStorage){
+    importRecords.forEach((record) => calculateImportRecord(record, importsDictionary));
+    // console.log("importRecords: ", importsDictionary);
+  
+    deleteRecords.forEach((record) => calculateDeleteRecord(record, deletesDictionary));
+    // console.log("deleteRecords: ", deletesDictionary);
+  }
+
   wasteRecords.forEach((record) => calculateWasteRecord(record, wastesDictionary));
-  // console.log("wasteRecords: ", wastesDictionary);
+   console.log("wasteRecords: ", wasteRecords);
 
   exportRecords.forEach((record) => calculateExportRecord(record, exportsDictionary));
   // console.log("exportRecords: ", exportRecords);
 
   let itemsFinalArray = [];
-  
-  items.forEach((item) => {
-    itemsFinalArray.push(createItemInfoJSONArea(item.id, item.name, item.image, item.average_weight, exportsDictionary[item.id],
-      wastesDictionary[item.id], exportsDictionary[item.id] - wastesDictionary[item.id]));
-  })
+
+  if(isMainStorage){
+
+    items.forEach((item) => {
+      itemsFinalArray.push(createItemInfoJSON(item.id, item.name, item.image, item.average_weight, (importsDictionary[item.id] - deletesDictionary[item.id]),
+        exportsDictionary[item.id], wastesDictionary[item.id], (importsDictionary[item.id] - deletesDictionary[item.id]) - wastesDictionary[item.id]));
+    })
+
+  } else {
+
+    items.forEach((item) => {
+      itemsFinalArray.push(createItemInfoJSONArea(item.id, item.name, item.image, item.average_weight, exportsDictionary[item.id],
+        wastesDictionary[item.id], exportsDictionary[item.id] - wastesDictionary[item.id]));
+    })
+  }
 
   return itemsFinalArray;
 }

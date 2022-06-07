@@ -28,6 +28,9 @@ export default function StatisticsDisplay({ navigation, route }) {
 
     const [isByDropArea, setIsByDropArea] = useState(false);
 
+    const [isMainStorage, setIsMainStorage] = useState(false);
+    const [isBeforeStorage, setIsBeforeStorage] = useState(false);
+
     // This function receives a searcing string and it fills the display list with the suitable items from the fullItemslist
     const updateListBySearch = (searchString) => {
 
@@ -56,9 +59,12 @@ export default function StatisticsDisplay({ navigation, route }) {
 
         });
 
+        if (isBeforeStorage) {
+            setItemsStatisticsInfo(() => [...(newItemsStatisticsList.sort(wastedAmountsCompare))]);
+        } else {
 
-        setItemsStatisticsInfo(() => [...(newItemsStatisticsList.sort(savedAmountsCompare))]);
-
+            setItemsStatisticsInfo(() => [...(newItemsStatisticsList.sort(savedAmountsCompare))]);
+        }
     };
 
     // This function returns a date object which is suitable to the given date string
@@ -78,6 +84,11 @@ export default function StatisticsDisplay({ navigation, route }) {
     const savedAmountsCompare = (itemOne, itemTwo) => {
 
         return (itemTwo.savedAmount * itemTwo.boxWeight) - (itemOne.savedAmount * itemOne.boxWeight);
+    }
+
+    const wastedAmountsCompare = (itemOne, itemTwo) => {
+
+        return (itemTwo.wasteAmount * itemTwo.boxWeight) - (itemOne.wasteAmount * itemOne.boxWeight);
     }
 
     useEffect(() => {
@@ -107,11 +118,20 @@ export default function StatisticsDisplay({ navigation, route }) {
 
                 case "dropArea":
                     setIsByDropArea(true);
-                    getDropAreaStatistics(getDateObjectFromStr(currStatisticsFilter.fromDate), getDateObjectFromStr(currStatisticsFilter.toDate), currStatisticsFilter.dropAreaID).then((itemsStatisticsList) => {
+                    setIsMainStorage(currStatisticsFilter.isMainStorage);
+                    setIsBeforeStorage(currStatisticsFilter.dropAreaID === "null" ? true : false);
+                    getDropAreaStatistics(getDateObjectFromStr(currStatisticsFilter.fromDate), getDateObjectFromStr(currStatisticsFilter.toDate), currStatisticsFilter.dropAreaID, currStatisticsFilter.isMainStorage).then((itemsStatisticsList) => {
 
                         setIsLoading(false);
 
-                        let itemsStatisticsInfoSorted = itemsStatisticsList.sort(savedAmountsCompare);
+                        let itemsStatisticsInfoSorted;
+                        if (currStatisticsFilter.dropAreaID === "null") {
+                            
+                            itemsStatisticsInfoSorted = itemsStatisticsList.sort(wastedAmountsCompare);
+                        } else {
+                            
+                            itemsStatisticsInfoSorted = itemsStatisticsList.sort(savedAmountsCompare);
+                        }
 
                         console.log("statisticsList: ", itemsStatisticsInfoSorted);
                         setFullItemsStatisticsInfo(itemsStatisticsInfoSorted);
@@ -164,7 +184,7 @@ export default function StatisticsDisplay({ navigation, route }) {
             const worksheet = workbook.addWorksheet('food_statistics_sheet', {});
             // Just some columns as used on ExcelJS Readme
 
-            if (isByDropArea) {
+            if (isByDropArea && !isMainStorage && !isBeforeStorage) {
 
                 worksheet.columns = [
                     { header: 'שם', key: 'name', width: 32 },
@@ -175,7 +195,7 @@ export default function StatisticsDisplay({ navigation, route }) {
                     { header: 'ניצול (ארגזים)', key: 'savedAmountBox', width: 32 },
                     { header: 'ניצול (ק״ג)', key: 'savedAmountKG', width: 32 },
                 ];
-            } else {
+            } else if (!isByDropArea || isMainStorage) {
                 worksheet.columns = [
                     { header: 'שם', key: 'name', width: 32 },
                     { header: 'קבלה (ארגזים)', key: 'receivedAmountBox', width: 32 },
@@ -187,13 +207,20 @@ export default function StatisticsDisplay({ navigation, route }) {
                     { header: 'ניצול (ארגזים)', key: 'savedAmountBox', width: 32 },
                     { header: 'ניצול (ק״ג)', key: 'savedAmountKG', width: 32 },
                 ];
+            } else if (isBeforeStorage) {
+
+                worksheet.columns = [
+                    { header: 'שם', key: 'name', width: 32 },
+                    { header: 'בזבוז (ארגזים)', key: 'wasteAmountBox', width: 32 },
+                    { header: 'בזבוז (ק״ג)', key: 'wasteAmountKG', width: 32 },
+                ];
             }
 
 
 
             fullItemsStatisticsInfo.forEach((item) => {
 
-                if (isByDropArea) {
+                if (isByDropArea && !isMainStorage && !isBeforeStorage) {
 
                     worksheet.addRow({
                         name: item.name,
@@ -205,7 +232,7 @@ export default function StatisticsDisplay({ navigation, route }) {
                         savedAmountKG: item.savedAmount * item.boxWeight
                     });
 
-                } else {
+                } else if (!isByDropArea || isMainStorage) {
                     worksheet.addRow({
                         name: item.name,
                         receivedAmountBox: item.receivedAmount,
@@ -217,11 +244,17 @@ export default function StatisticsDisplay({ navigation, route }) {
                         savedAmountBox: item.savedAmount,
                         savedAmountKG: item.savedAmount * item.boxWeight
                     });
+                } else if (isBeforeStorage) {
 
+                    worksheet.addRow({
+                        name: item.name,
+                        wasteAmountBox: item.wasteAmount,
+                        wasteAmountKG: item.wasteAmount * item.boxWeight,
+                    });
                 }
             });
 
-            if (isByDropArea) {
+            if (isByDropArea && !isMainStorage && !isBeforeStorage) {
 
                 worksheet.addRow({
                     name: "ס״ה",
@@ -232,7 +265,7 @@ export default function StatisticsDisplay({ navigation, route }) {
                     savedAmountBox: getGeneralSums("saved").boxesSum,
                     savedAmountKG: getGeneralSums("saved").KGSum
                 });
-            } else {
+            } else if (!isByDropArea || isMainStorage) {
                 worksheet.addRow({
                     name: "ס״ה",
                     receivedAmountBox: getGeneralSums("received").boxesSum,
@@ -243,6 +276,12 @@ export default function StatisticsDisplay({ navigation, route }) {
                     wasteAmountKG: getGeneralSums("waste").KGSum,
                     savedAmountBox: getGeneralSums("saved").boxesSum,
                     savedAmountKG: getGeneralSums("saved").KGSum
+                });
+            } else if (isBeforeStorage) {
+                worksheet.addRow({
+                    name: "ס״ה",
+                    wasteAmountBox: getGeneralSums("waste").boxesSum,
+                    wasteAmountKG: getGeneralSums("waste").KGSum,
                 });
             }
 
@@ -348,10 +387,10 @@ export default function StatisticsDisplay({ navigation, route }) {
 
                 <View style={styles.itemInfoContainer}>
                     <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>שם: </Text>{item.name}</Text>
-                    <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>קבלה: </Text>{`${item.receivedAmount} ארגזים => ${item.receivedAmount * item.boxWeight} ק״ג`}</Text>
-                    {!isByDropArea && <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>יצוא: </Text>{`${item.exportAmount} ארגזים => ${item.exportAmount * item.boxWeight} ק״ג`}</Text>}
+                    {!isBeforeStorage && <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>קבלה: </Text>{`${item.receivedAmount} ארגזים => ${item.receivedAmount * item.boxWeight} ק״ג`}</Text>}
+                    {(!isByDropArea || isMainStorage) && <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>יצוא: </Text>{`${item.exportAmount} ארגזים => ${item.exportAmount * item.boxWeight} ק״ג`}</Text>}
                     <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>בזבוז: </Text>{`${item.wasteAmount} ארגזים => ${item.wasteAmount * item.boxWeight} ק״ג`}</Text>
-                    <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>ניצול: </Text>{`${item.savedAmount} ארגזים => ${item.savedAmount * item.boxWeight} ק״ג`}</Text>
+                    {!isBeforeStorage && <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>ניצול: </Text>{`${item.savedAmount} ארגזים => ${item.savedAmount * item.boxWeight} ק״ג`}</Text>}
 
                 </View>
 
@@ -378,10 +417,10 @@ export default function StatisticsDisplay({ navigation, route }) {
                 <View styel={styles.bottomInfoAndControlContainer}>
                     <View style={styles.generalSummaryContainer}>
 
-                        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>קבלה ס״ה: </Text>{`${getGeneralSums("received").boxesSum} ארגזים => ${getGeneralSums("received").KGSum} ק״ג`}</Text>
-                        {!isByDropArea && <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>יצוא ס״ה: </Text>{`${getGeneralSums("export").boxesSum} ארגזים => ${getGeneralSums("export").KGSum} ק״ג`}</Text>}
+                        {!isBeforeStorage && <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>קבלה ס״ה: </Text>{`${getGeneralSums("received").boxesSum} ארגזים => ${getGeneralSums("received").KGSum} ק״ג`}</Text>}
+                        {(!isByDropArea || isMainStorage) && <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>יצוא ס״ה: </Text>{`${getGeneralSums("export").boxesSum} ארגזים => ${getGeneralSums("export").KGSum} ק״ג`}</Text>}
                         <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>בזבוז ס״ה: </Text>{`${getGeneralSums("waste").boxesSum} ארגזים => ${getGeneralSums("waste").KGSum} ק״ג`}</Text>
-                        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>ניצול ס״ה: </Text>{`${getGeneralSums("saved").boxesSum} ארגזים => ${getGeneralSums("saved").KGSum} ק״ג`}</Text>
+                        {!isBeforeStorage && <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>ניצול ס״ה: </Text>{`${getGeneralSums("saved").boxesSum} ארגזים => ${getGeneralSums("saved").KGSum} ק״ג`}</Text>}
 
                         <View style={{ flexDirection: "row-reverse" }}>
                             <Text style={[styles.infoTextStyle, { marginLeft: 5 }]}><Text style={styles.infoTitleTextStyle}>מ- </Text>{(fromDateStr === "") ? "ההתחלה" : fromDateStr}</Text>
@@ -415,7 +454,7 @@ const styles = StyleSheet.create({
         height: 50,
         paddingRight: 7,
         paddingLeft: 7,
-        
+
     },
 
     generalSummaryContainer: {
@@ -500,8 +539,8 @@ const styles = StyleSheet.create({
     },
 
     bottomInfoAndControlContainer: {
-        
-       minWidth: "100%",
+
+        minWidth: "100%",
 
     }
 

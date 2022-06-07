@@ -34,6 +34,8 @@ export default function SeeStatistics({ navigation, route }) {
 
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const [mainStorageID, setMainStorageID] = useState("");
+
   // This function returns the date from now to before the given number of days
   const getDateBeforeNumOfDays = (numOfDays) => {
 
@@ -70,6 +72,9 @@ export default function SeeStatistics({ navigation, route }) {
       let dropAreasDDInfo = [];
 
       dropAreasInfo.forEach((currDropArea) => {
+        if(currDropArea.isMainStorage){
+          setMainStorageID(currDropArea.id);
+        }
         dropAreasDDInfo.push({ label: currDropArea.name, value: currDropArea.id });
       });
 
@@ -91,7 +96,7 @@ export default function SeeStatistics({ navigation, route }) {
 
     if (isByDropArea) {
 
-      navigation.navigate({ name: 'StatisticsDisplay', params: { statisticsFilter: { statisticsType: "dropArea", fromDate: fromDateInput, toDate: toDateInput, dropAreaID: dropAreasValue } } });
+      navigation.navigate({ name: 'StatisticsDisplay', params: { statisticsFilter: { statisticsType: "dropArea", fromDate: fromDateInput, toDate: toDateInput, dropAreaID: dropAreasValue, isMainStorage: dropAreasValue === mainStorageID? true : false}} });
 
     } else {
 
