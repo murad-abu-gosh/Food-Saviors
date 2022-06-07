@@ -19,10 +19,10 @@ export default function SeeStatistics({ navigation, route }) {
   const [statisticsTypeValue, setStatisticsTypeValue] = useState(null);
   const [statisticsTypeItems, setStatisticsTypeItems] = useState([
     { label: 'כללי', value: "general" },
-    { label: 'לפי נקודת פיזור', value: "dropArea" }
+    { label: 'לפי נקודה', value: "dropArea" }
   ]);
 
-  const [dropAreasDDP, setDropAreasDDP] = useState("נא לבחור נקודת פיזור");
+  const [dropAreasDDP, setDropAreasDDP] = useState("נא לבחור נקודה");
 
   const [dropAreasOpen, setDropAreasOpen] = useState(false);
   const [dropAreasValue, setDropAreasValue] = useState(null);
@@ -73,6 +73,8 @@ export default function SeeStatistics({ navigation, route }) {
         dropAreasDDInfo.push({ label: currDropArea.name, value: currDropArea.id });
       });
 
+      dropAreasDDInfo.push({ label: "לפני הכניסה למחסן", value: "null" });
+
       setDropAreasItems(dropAreasDDInfo);
     });
 
@@ -116,7 +118,7 @@ export default function SeeStatistics({ navigation, route }) {
 
     if (isByDropArea && dropAreasValue === null) {
 
-      errorsString += "* נא לבחור נקודת פיזור\n";
+      errorsString += "* נא לבחור נקודה\n";
     }
 
     if (errorsString !== "") {

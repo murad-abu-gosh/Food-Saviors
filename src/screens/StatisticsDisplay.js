@@ -12,6 +12,7 @@ import ExcelJS from 'exceljs';
 import * as Sharing from 'expo-sharing';
 // From @types/node/buffer
 import { Buffer as NodeBuffer } from 'buffer';
+import { getStatusBarHeight } from "react-native-status-bar-height";
 
 
 export default function StatisticsDisplay({ navigation, route }) {
@@ -294,7 +295,7 @@ export default function StatisticsDisplay({ navigation, route }) {
 
             case "received":
 
-                itemsStatisticsInfo.forEach((item) => {
+                fullItemsStatisticsInfo.forEach((item) => {
 
                     sumsJSON.boxesSum += item.receivedAmount;
 
@@ -304,7 +305,7 @@ export default function StatisticsDisplay({ navigation, route }) {
 
             case "export":
 
-                itemsStatisticsInfo.forEach((item) => {
+                fullItemsStatisticsInfo.forEach((item) => {
 
                     sumsJSON.boxesSum += item.exportAmount;
 
@@ -314,7 +315,7 @@ export default function StatisticsDisplay({ navigation, route }) {
 
             case "waste":
 
-                itemsStatisticsInfo.forEach((item) => {
+                fullItemsStatisticsInfo.forEach((item) => {
 
                     sumsJSON.boxesSum += item.wasteAmount;
 
@@ -324,7 +325,7 @@ export default function StatisticsDisplay({ navigation, route }) {
 
             case "saved":
 
-                itemsStatisticsInfo.forEach((item) => {
+                fullItemsStatisticsInfo.forEach((item) => {
 
                     sumsJSON.boxesSum += item.savedAmount;
 
@@ -366,29 +367,31 @@ export default function StatisticsDisplay({ navigation, route }) {
 
                 <BackButton goBack={navigation.goBack} />
 
+                <TextInput style={styles.infoTextInputStyle} onChangeText={(searchString) => { updateListBySearch(searchString) }} placeholder="חיפוש"></TextInput>
+
                 <View style={styles.searchAndListContainer}>
 
-                    <TextInput style={styles.infoTextInputStyle} onChangeText={(searchString) => { updateListBySearch(searchString) }} placeholder="חיפוש"></TextInput>
 
                     <FlatList keyExtractor={(item, index) => index} showsVerticalScrollIndicator={false} style={styles.flatListStyle} data={itemsStatisticsInfo} renderItem={({ item }) => { return getListRenderItem(item) }} />
                 </View>
 
-                <View style={styles.generalSummaryContainer}>
+                <View styel={styles.bottomInfoAndControlContainer}>
+                    <View style={styles.generalSummaryContainer}>
 
-                    <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>קבלה ס״ה: </Text>{`${getGeneralSums("received").boxesSum} ארגזים => ${getGeneralSums("received").KGSum} ק״ג`}</Text>
-                    {!isByDropArea && <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>יצוא ס״ה: </Text>{`${getGeneralSums("export").boxesSum} ארגזים => ${getGeneralSums("export").KGSum} ק״ג`}</Text>}
-                    <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>בזבוז ס״ה: </Text>{`${getGeneralSums("waste").boxesSum} ארגזים => ${getGeneralSums("waste").KGSum} ק״ג`}</Text>
-                    <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>ניצול ס״ה: </Text>{`${getGeneralSums("saved").boxesSum} ארגזים => ${getGeneralSums("saved").KGSum} ק״ג`}</Text>
+                        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>קבלה ס״ה: </Text>{`${getGeneralSums("received").boxesSum} ארגזים => ${getGeneralSums("received").KGSum} ק״ג`}</Text>
+                        {!isByDropArea && <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>יצוא ס״ה: </Text>{`${getGeneralSums("export").boxesSum} ארגזים => ${getGeneralSums("export").KGSum} ק״ג`}</Text>}
+                        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>בזבוז ס״ה: </Text>{`${getGeneralSums("waste").boxesSum} ארגזים => ${getGeneralSums("waste").KGSum} ק״ג`}</Text>
+                        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>ניצול ס״ה: </Text>{`${getGeneralSums("saved").boxesSum} ארגזים => ${getGeneralSums("saved").KGSum} ק״ג`}</Text>
 
-                    <View style={{ flexDirection: "row-reverse" }}>
-                        <Text style={[styles.infoTextStyle, { marginLeft: 5 }]}><Text style={styles.infoTitleTextStyle}>מ- </Text>{(fromDateStr === "") ? "ההתחלה" : fromDateStr}</Text>
-                        <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>עד- </Text>{(toDateStr === "") ? "עכשיו" : toDateStr}</Text>
+                        <View style={{ flexDirection: "row-reverse" }}>
+                            <Text style={[styles.infoTextStyle, { marginLeft: 5 }]}><Text style={styles.infoTitleTextStyle}>מ- </Text>{(fromDateStr === "") ? "ההתחלה" : fromDateStr}</Text>
+                            <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>עד- </Text>{(toDateStr === "") ? "עכשיו" : toDateStr}</Text>
+                        </View>
+
                     </View>
 
+                    <TouchableOpacity style={styles.generateXlsxButton} onPress={shareExcel}><Text style={styles.shareExcelText}>שטף קובץ Excel</Text></TouchableOpacity>
                 </View>
-
-                <TouchableOpacity style={styles.generateXlsxButton} onPress={shareExcel}><Text style={styles.shareExcelText}>שטף קובץ Excel</Text></TouchableOpacity>
-
             </ImageBackground>
         </View>
     );
@@ -401,37 +404,29 @@ const styles = StyleSheet.create({
         flex: 1,
         width: '100%',
         backgroundColor: theme.colors.surface,
-        flex: 1,
         alignSelf: 'center',
         alignItems: 'center',
-        justifyContent: 'flex-end',
+
 
     },
 
     flatListStyle: {
         width: "100%",
+        height: 50,
         paddingRight: 7,
         paddingLeft: 7,
+        
     },
 
     generalSummaryContainer: {
         alignItems: "flex-end",
-        // height: "16%",
-        width: "100%",
+        minWidth: "100%",
         borderTopColor: "#1c6669",
         borderTopWidth: 3,
-
         padding: 5,
         backgroundColor: "white"
     },
 
-    toucheableAddBStyle: {
-        height: 65,
-        width: 65,
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 50,
-    },
 
     itemCardContainer: {
 
@@ -469,14 +464,15 @@ const styles = StyleSheet.create({
     },
 
     searchAndListContainer: {
-        height: "70%",
-        marginTop: "8%",
+        flex: 1,
         flexDirection: "column",
         alignItems: "center",
 
     },
 
     infoTextInputStyle: {
+
+        marginTop: getStatusBarHeight() + 24,
         marginBottom: 10,
         fontSize: 20,
         textAlign: "center",
@@ -488,8 +484,8 @@ const styles = StyleSheet.create({
 
     generateXlsxButton: {
 
-        width: "100%",
-        height: "8%",
+        minWidth: "100%",
+        height: 60,
         backgroundColor: "#00700f",
         alignItems: "center",
         justifyContent: "center"
@@ -500,6 +496,12 @@ const styles = StyleSheet.create({
         fontSize: 22,
         color: "white",
         fontWeight: "bold"
+
+    },
+
+    bottomInfoAndControlContainer: {
+        
+       minWidth: "100%",
 
     }
 

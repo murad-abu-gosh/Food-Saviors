@@ -18,14 +18,15 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.companyname.myappname",
+      "bundleIdentifier": "com.azrieligroupe.foodrescuers",
       "buildNumber": "1.0.0"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.azrieligroupe.foodrescuers"
     },
     "web": {
       "favicon": "./assets/favicon.png"
