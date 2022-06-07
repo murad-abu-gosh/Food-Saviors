@@ -119,7 +119,7 @@ export default function ExportAndWaste({ navigation, route }) {
     return result;
   };
 
-  const [mainStorageID, setMainStorageID] = useState("");
+   const [mainStorageID, setMainStorageID] = useState("");
   React.useEffect(() => {
     if (route.params?.paramKey) {
       SetChangedData(route.params?.paramKey);
@@ -131,27 +131,46 @@ export default function ExportAndWaste({ navigation, route }) {
         "route.params?.paramKey.export",
         route.params?.paramKey.export
       );
-      if (BeforeStorage(route.params?.paramKey.data)) {
-        setItems([{ label: "לפני הכניסה למחסן", value: "null" }]);
-      } else {
-        let drops = [];
-        dropAreasInfo.forEach((drop) => {
-          if (drop.isMainStorage === true) {
-            setMainStorageID(drop.id);
-          }
-          if (!(route.params?.paramKey.export && drop.isMainStorage)) {
-
+      // if (BeforeStorage(route.params?.paramKey.data)) {
+      //   setItems([{ label: "לפני הכניסה למחסן", value: -1 }]);
+      // } else {
+      let drops = [];
+      dropAreasInfo.forEach((drop) => {
+        if (drop.isMainStorage === true) {
+          setMainStorageID(drop.id);
+        }
+        if (route.params?.paramKey.export) {
+          if (!drop.isMainStorage) {
             drops.push({ label: drop.name, value: drop.id });
           }
-
-        });  
-        if (!route.params?.paramKey.export)
-          drops.push({ label: "לפני הכניסה למחסן", value: "null" });
-        setItems(drops);
-      }
+        } else {
+          if (
+            !(
+              moreThanStorage(route.params?.paramKey.data) && drop.isMainStorage
+            )
+          ) {
+            drops.push({ label: drop.name, value: drop.id });
+          }
+        }
+        // if (!(route.params?.paramKey.export && drop.isMainStorage)) {
+        //   drops.push({ label: drop.name, value: drop.id });
+        // }
+        // if (
+        //   !(
+        //     !route.params?.paramKey.export &&
+        //     drop.isMainStorage &&
+        //     moreThanStorage(route.params?.paramKey.data)
+        //   )
+        // ) {
+        //   drops.push({ label: drop.name, value: drop.id });
+        // }
+      });
+      if (!route.params?.paramKey.export)
+        drops.push({ label: "לפני הכניסה למחסן", value: "null" });
+      setItems(drops);
+      // }
     });
   }, [route.params?.paramKey]);
-
 
   // console.log("wheeeeee3" + JSON.stringify(route.params?.paramKey));
   console.log(route.params?.paramKey);
