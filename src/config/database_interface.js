@@ -573,7 +573,8 @@ async function isValidItemsAmounts(recordArray) {
     }
 
   });
-  
+
+
   return true;
 }
 
@@ -593,7 +594,7 @@ export async function addNewExportRecord(exportUserID, exportDropAreaID, exportD
     userID: exportUserID,
     dropAreaID: exportDropAreaID,
     date: exportDate,
-    itemToAmount: itemToAmountMap
+    itemsToAmounts: itemToAmountMap
   }).catch(alert);
 
   await updateItemsAmountsFromRecord(itemToAmountMap, 2);
@@ -653,7 +654,7 @@ export async function addNewWasteRecord(recordUserID, wasteDropAreaID, wasteDate
   console.log("Added new waste record: ", recordMap);
 
   if (isMainStorage) {
-    updateItemsAmountsFromRecord(recordMap, -1);
+    await updateItemsAmountsFromRecord(recordMap, -1);
   }
 
   return docRef.id;
@@ -855,7 +856,7 @@ function calculateDeleteRecord(record, dictionary) {
 }
 
 function calculateExportRecord(record, dictionary) {
-  let recordMap = record.itemToAmount;
+  let recordMap = record.itemsToAmounts;
   // console.log("record map: ",recordMap);
   const itemsIDs = Object.keys(dictionary);
   if (!recordMap) return;
@@ -867,7 +868,8 @@ function calculateExportRecord(record, dictionary) {
 }
 
 function calculateWasteRecord(record, dictionary) {
-  let recordMap = record.itemsToAmounts;
+
+  let recordMap = record.itemsToAmounts; 
   const itemsIDs = Object.keys(dictionary);
   if (!recordMap) return;
   itemsIDs.forEach((key, index) => {
@@ -971,13 +973,13 @@ export async function getDropAreaStatistics(fromDate = null, toDate = null, drop
   });
 
   wasteRecords.forEach((record) => calculateWasteRecord(record, wastesDictionary));
-  // console.log("wasteRecords: ", wasteRecords);
+  // console.log("wasteRecords: ", wastesDictionary);
 
   exportRecords.forEach((record) => calculateExportRecord(record, exportsDictionary));
   // console.log("exportRecords: ", exportRecords);
 
   let itemsFinalArray = [];
-  let currentItemJSON = null;
+  
   items.forEach((item) => {
     itemsFinalArray.push(createItemInfoJSONArea(item.id, item.name, item.image, item.average_weight, exportsDictionary[item.id],
       wastesDictionary[item.id], exportsDictionary[item.id] - wastesDictionary[item.id]));

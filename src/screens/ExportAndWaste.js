@@ -132,7 +132,7 @@ export default function ExportAndWaste({ navigation, route }) {
         route.params?.paramKey.export
       );
       if (BeforeStorage(route.params?.paramKey.data)) {
-        setItems([{ label: "לפני הכניסה למחסן", value: -1 }]);
+        setItems([{ label: "לפני הכניסה למחסן", value: "null" }]);
       } else {
         let drops = [];
         dropAreasInfo.forEach((drop) => {
@@ -144,9 +144,9 @@ export default function ExportAndWaste({ navigation, route }) {
             drops.push({ label: drop.name, value: drop.id });
           }
 
-        });
+        });  
         if (!route.params?.paramKey.export)
-          drops.push({ label: "לפני הכניסה למחסן", value: -1 });
+          drops.push({ label: "לפני הכניסה למחסן", value: "null" });
         setItems(drops);
       }
     });
