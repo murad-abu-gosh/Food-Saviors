@@ -424,7 +424,7 @@ export default function StatisticsDisplay({ navigation, route }) {
 
                         <View style={{ flexDirection: "row-reverse" }}>
                             <Text style={[styles.infoTextStyle, { marginLeft: 5 }]}><Text style={styles.infoTitleTextStyle}>מ- </Text>{(fromDateStr === "") ? "ההתחלה" : fromDateStr}</Text>
-                            <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>עד- </Text>{(toDateStr === "") ? "עכשיו" : toDateStr}</Text>
+                            <Text style={styles.infoTextStyle}><Text style={styles.infoTitleTextStyle}>עד- </Text>{(toDateStr === "") ? getDateStr(new Date()) : toDateStr}</Text>
                         </View>
 
                     </View>

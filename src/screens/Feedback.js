@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, ImageBackground, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import BackButton from "../components/BackButton";
-import { FlatList, TouchableOpacity } from "react-native-gesture-handler";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { fetchAllDocuments, fetchDocumentById, fetchFeedbacksSorted } from "../config/database_interface";
 import { theme } from "../core/theme";
@@ -155,7 +154,7 @@ export default function Feedback({ navigation, route }) {
     let mm = String(dateObj.getMonth() + 1).padStart(2, '0');
     let yyyy = dateObj.getFullYear();
 
-    dateString = dd + '/' + mm + '/' + yyyy;
+    dateString = dd + '-' + mm + '-' + yyyy;
 
     return dateString;
   };
@@ -184,6 +183,20 @@ export default function Feedback({ navigation, route }) {
     }
 
     return -1;
+  }
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+
+    console.log("Refreshing");
+
+    setIsRefreshing(true);
+
+    fetchAllFeedbacksDocuments().then(() => {
+
+      setIsRefreshing(false);
+    });
   }
 
   // This function returns the render item / the card of the dropArea info after filling it with the dropArea info from
@@ -228,7 +241,7 @@ export default function Feedback({ navigation, route }) {
 
         <TextInput style={styles.infoTextInputStyle} onChangeText={(searchString) => { updateListBySearch(searchString) }} placeholder="חיפוש"></TextInput>
 
-        <FlatList extraData={IDsNamesMap} keyExtractor={(item, index) => index} showsVerticalScrollIndicator={false} style={styles.flatListStyle} data={feedbacksInfo} renderItem={({ item }) => { return getListRenderItem(item) }} />
+        <FlatList onRefresh={onRefresh} refreshing={isRefreshing} extraData={IDsNamesMap} keyExtractor={(item, index) => index} showsVerticalScrollIndicator={false} style={styles.flatListStyle} data={feedbacksInfo} renderItem={({ item }) => { return getListRenderItem(item) }} />
 
       </View>
 
