@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
 import BackButton from "../components/BackButton";
-import { FlatList, TouchableOpacity } from "react-native-gesture-handler";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { fetchDropAreasSorted } from "../config/database_interface";
 import OurActivityIndicator from "../components/OurActivityIndicator";
@@ -144,6 +144,20 @@ export default function ManageDropArea({ navigation, route }) {
     return -1;
   }
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+
+    console.log("Refreshing");
+
+    setIsRefreshing(true);
+
+    fetchAllDropAreasDocuments().then(() => {
+
+      setIsRefreshing(false);
+    });
+  }
+
   // This function returns the render item / the card of the dropArea info after filling it with the dropArea info from
   // the received item argumnet so we can display it in the flatlist
   const getListRenderItem = (item) => {
@@ -175,7 +189,7 @@ export default function ManageDropArea({ navigation, route }) {
 
         <TextInput style={styles.infoTextInputStyle} onChangeText={(searchString) => { updateListBySearch(searchString) }} placeholder="חיפוש"></TextInput>
 
-        <FlatList keyExtractor={(item, index) => index} showsVerticalScrollIndicator={false} style={styles.flatListStyle} data={dropAreasInfo} renderItem={({ item }) => { return getListRenderItem(item) }} />
+        <FlatList onRefresh={onRefresh} refreshing={isRefreshing} keyExtractor={(item, index) => index} showsVerticalScrollIndicator={false} style={styles.flatListStyle} data={dropAreasInfo} renderItem={({ item }) => { return getListRenderItem(item) }} />
 
       </View>
 

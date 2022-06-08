@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import {Image, ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
+import {FlatList, Image, ImageBackground, StyleSheet, Text, TextInput, View } from "react-native";
 import BackButton from "../components/BackButton";
-import { FlatList, TouchableOpacity } from "react-native-gesture-handler";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import { getStatusBarHeight } from "react-native-status-bar-height";
 import { setStatusBarStyle } from "expo-status-bar";
 import { fetchDocumentById, fetchUsersSorted } from "../config/database_interface";
@@ -175,6 +175,20 @@ export default function ManageVolunteers({ navigation, route }) {
     }
   }
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+
+    console.log("Refreshing");
+
+    setIsRefreshing(true);
+
+    fetchAllVolunteersDocuments().then(() => {
+
+      setIsRefreshing(false);
+    });
+  }
+
   // This function returns the render item / the card of the volunteer info after filling it with the volunteer info from
   // the received item argumnet so we can display it in the flatlist
   const getListRenderItem = (item) => {
@@ -222,7 +236,7 @@ export default function ManageVolunteers({ navigation, route }) {
       <View style={styles.searchAndListContainer}>
         <TextInput style={styles.infoTextInputStyle} onChangeText={(searchString) => { updateListBySearch(searchString) }} placeholder="חיפוש"></TextInput>
 
-        <FlatList keyExtractor={(item, index) => index} showsVerticalScrollIndicator={false} style={styles.flatListStyle} data={volunteeresInfo} renderItem={({ item }) => { return getListRenderItem(item) }} />
+        <FlatList onRefresh={onRefresh} refreshing={isRefreshing}  keyExtractor={(item, index) => index} showsVerticalScrollIndicator={false} style={styles.flatListStyle} data={volunteeresInfo} renderItem={({ item }) => { return getListRenderItem(item) }} />
       </View>
 
       <View style={styles.addButtonStyle}><TouchableOpacity style={styles.toucheableAddBStyle} onPress={() => navigation.navigate({ name: "AddVolunteer", params: { isForEdit: false, status: "none" }, merge: true })}><Text style={styles.addButtonTextStyle}>+</Text></TouchableOpacity></View>

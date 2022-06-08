@@ -43,6 +43,20 @@ export default function SeeStatistics({ navigation, route }) {
     return currDate.setDate(currDate.getDate() - numOfDays);
   }
 
+      // This function returns a date object which is suitable to the given date string
+      const getDateObjectFromStr = (dateStr) => {
+
+        if (dateStr === "") {
+            return null;
+        }
+
+        let dateStrParts = dateStr.split("-");
+
+        let dateObject = new Date(parseInt(dateStrParts[2]), parseInt(dateStrParts[1]) - 1, parseInt(dateStrParts[0]));
+
+        return dateObject;
+    }
+
   // This funtion returns a date string with the format dd-mm-yyyy using the given date object
   const getDateStr = (dateObj) => {
 
@@ -116,6 +130,18 @@ export default function SeeStatistics({ navigation, route }) {
       errorsString += "* נא להזין תאריך תקין בפורמט הזה: \n\ndd-mm-yyyy\n\n* או להשאיר את הסדה ריק\n";
     }
 
+    if((isValidDate(fromDateInput) && isValidDate(toDateInput))){
+
+      let today = new Date();
+
+      console.log((getDateObjectFromStr(fromDateInput).getTime() > today.getTime()), (getDateObjectFromStr(toDateInput).getTime() > today.getTime()), (getDateObjectFromStr(toDateInput).getTime() > getDateObjectFromStr(fromDateInput).getTime()));
+
+      if((getDateObjectFromStr(fromDateInput).getTime() > today.getTime()) || (getDateObjectFromStr(toDateInput).getTime() > today.getTime()) || (getDateObjectFromStr(fromDateInput).getTime() > getDateObjectFromStr(toDateInput).getTime())){
+
+        errorsString += "* נא לבחור תקופת תאריכים תקינה ומסודרת\n";
+      }
+    }
+
     if(statisticsTypeValue === null){
 
       errorsString += "* נא לבחור סוג סטטיסטיקה\n";
@@ -181,8 +207,8 @@ export default function SeeStatistics({ navigation, route }) {
 
           <View style={styles.DatesInputContainer}>
 
-            <TextInput style={styles.infoTextInputStyle} value={fromDateInput} onChangeText={(value) => setFromDateInput(value)} placeholder="מ- dd/mm/yyyy" keyboardType="name-phone-pad"></TextInput>
-            <TextInput style={styles.infoTextInputStyle} value={toDateInput} onChangeText={(value) => setToDateInput(value)} placeholder="עד- dd/mm/yyyy" keyboardType="name-phone-pad"></TextInput>
+            <TextInput style={styles.infoTextInputStyle} value={fromDateInput} onChangeText={(value) => setFromDateInput(value)} placeholder="מ- dd-mm-yyyy" keyboardType="name-phone-pad"></TextInput>
+            <TextInput style={styles.infoTextInputStyle} value={toDateInput} onChangeText={(value) => setToDateInput(value)} placeholder="עד- dd-mm-yyyy" keyboardType="name-phone-pad"></TextInput>
 
           </View>
 
