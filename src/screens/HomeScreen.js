@@ -69,7 +69,7 @@ export default function HomeScreen({ navigation }) {
 
         setCurrUserInfo(() => userJSONObj);
 
-        if(userJSONObj.rank <= 1){
+        if (userJSONObj.rank <= 1) {
           setIsAdmin(true);
         }
       }
@@ -137,13 +137,13 @@ export default function HomeScreen({ navigation }) {
         />
       </TouchableOpacity>
       <SafeAreaView style={styles.LogoTextContainer}>
-          <Logo />
-          {/* <Text style={styles.Text}>ניצול מזון : 12,000 ק''ג</Text> */}
+        <Logo />
+        {/* <Text style={styles.Text}>ניצול מזון : 12,000 ק''ג</Text> */}
 
 
       </SafeAreaView>
       <View style={styles.buttonContainer}>
-       
+
         {/* all the button  */}
         <TouchableOpacity
           onPress={() => navigation.navigate("ManageGoods")}
@@ -160,26 +160,26 @@ export default function HomeScreen({ navigation }) {
         </TouchableOpacity>
 
 
-        <TouchableOpacity
+        {isAdmin && <TouchableOpacity
           onPress={() => navigation.navigate("ManageItems")}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>ניהול פריטים</Text>
-        </TouchableOpacity>
+        </TouchableOpacity>}
 
-       { isAdmin &&  <TouchableOpacity
+        {isAdmin && <TouchableOpacity
           onPress={() => navigation.navigate("ManageVolunteers")}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>ניהול מתנדבים</Text>
-        </TouchableOpacity> }
+        </TouchableOpacity>}
 
-        { isAdmin && <TouchableOpacity
+        {isAdmin && <TouchableOpacity
           onPress={() => navigation.navigate("ManageDropArea")}
           style={styles.appButtonContainer}
         >
           <Text style={styles.appButtonText}>ניהול נקודות פיזור</Text>
-        </TouchableOpacity> }
+        </TouchableOpacity>}
 
         <TouchableOpacity
           onPress={() => navigation.navigate("Feedback")}
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     borderRadius: 10
   },
   header: {
-   
+
     borderRadius: 10,
     borderWidth: 3,
     borderColor: "#1c6669"
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
   headerContent: {
     padding: 25,
     alignItems: "center",
-    
+
   },
   avatar: {
     width: 130,

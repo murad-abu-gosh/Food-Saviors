@@ -38,6 +38,7 @@ import { theme } from "../core/theme";
 import OurActivityIndicator from "../components/OurActivityIndicator";
 
 
+
 export default function ManageItems({ navigation }) {
 
 
@@ -120,8 +121,8 @@ export default function ManageItems({ navigation }) {
 
       errorsString += "* משקל הפריט חובה\n";
     }
-    if (isNaN(Weight)) {
-      errorsString += "* משקל צריך להיות מספר\n";
+    if (isNaN(Weight) || parseFloat(Weight) < 0) {
+      errorsString += "* משקל צריך להיות מספר חיובי\n";
     }
     if (image === null) {
 
@@ -301,7 +302,7 @@ export default function ManageItems({ navigation }) {
             </TouchableOpacity>
 
             <ScrollView
-             
+
               contentContainerStyle={{
                 flexGrow: 1,
 
@@ -524,14 +525,16 @@ export default function ManageItems({ navigation }) {
 
         {/* <View style={styles.ScreenContainer}>  */}
         <ScrollView
-         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           contentContainerStyle={{
             flexGrow: 1,
 
             flexDirection: "row",
-
+         //   paddingBottom: 15,
+            //  height: "100%",
+            //  backgroundColor: "red",
             width: "100%",
             marginTop: 5,
 

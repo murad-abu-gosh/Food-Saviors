@@ -120,7 +120,7 @@ export default function ExportAndWaste({ navigation, route }) {
     return result;
   };
 
-   const [mainStorageID, setMainStorageID] = useState("");
+  const [mainStorageID, setMainStorageID] = useState("");
   React.useEffect(() => {
     if (route.params?.paramKey) {
       SetChangedData(route.params?.paramKey);
@@ -226,26 +226,26 @@ export default function ExportAndWaste({ navigation, route }) {
           {/* <View>
               <Button title="Open" onPress={() => setOpen(true)} />
             </View> */}
-          <View style={styles.DropContainer}>
-            <DropDownPicker
-              style={{
-                borderColor: "#1c6669",
-                borderBottomWidth: 2,
-              }}
-              textStyle={{
-                fontSize: 15,
-              }}
-              showTickIcon={false}
-              placeholder="נקודת פיזור"
-              containerStyle={styles.dropDownStyle}
-              open={open}
-              value={value}
-              items={items}
-              setOpen={setOpen}
-              setValue={setValue}
-              setItems={setItems}
-            />
-          </View>
+          {/* <View style={styles.DropContainer}> */}
+          <DropDownPicker
+            style={{
+              borderColor: "#1c6669",
+              borderBottomWidth: 2,
+            }}
+            textStyle={{
+              fontSize: 15,
+            }}
+            showTickIcon={false}
+            placeholder="נקודת פיזור"
+            containerStyle={styles.dropDownStyle}
+            open={open}
+            value={value}
+            items={items}
+            setOpen={setOpen}
+            setValue={setValue}
+            setItems={setItems}
+          />
+          {/* </View> */}
 
           <Pressable
             style={styles.ButtonView}
@@ -343,27 +343,29 @@ export default function ExportAndWaste({ navigation, route }) {
             <Button title="Open" onPress={() => setOpen(true)} />
           </View> */}
           </View>
-          <View style={styles.DropContainer}>
-            <DropDownPicker
-              // placeholder={dropDownPlaceholder}
-              style={{
-                borderColor: "#1c6669",
-                borderBottomWidth: 2,
-              }}
-              textStyle={{
-                fontSize: 15,
-              }}
-              showTickIcon={false}
-              placeholder="נקודת פיזור"
-              containerStyle={styles.dropDownStyle}
-              open={open}
-              value={value}
-              items={items}
-              setOpen={setOpen}
-              setValue={setValue}
-              setItems={setItems}
-            />
-          </View>
+          {/* <View style={styles.DropContainer}> */}
+          <DropDownPicker
+            // placeholder={dropDownPlaceholder}
+            style={{
+              borderColor: "#1c6669",
+              borderBottomWidth: 2,
+            }}
+            textStyle={{
+              fontSize: 15,
+            }}
+            showTickIcon={false}
+            placeholder="נקודת פיזור"
+            containerStyle={styles.dropDownStyle}
+            open={open}
+            value={value}
+            items={items}
+            setOpen={setOpen}
+            setValue={setValue}
+            setItems={setItems}
+            zIndex={2000}
+            zIndexInverse={2000}
+          />
+          {/* </View> */}
 
           <Pressable
             style={styles.ButtonView}
@@ -481,6 +483,7 @@ const styles = StyleSheet.create({
     margin: 0,
     width: "100%",
     height: "100%",
+    borderBottomWidth: 2,
   },
   EveryItem: {
     flex: 1,
