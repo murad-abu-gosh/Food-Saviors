@@ -5,6 +5,7 @@ import {
   Modal,
   Pressable,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -136,59 +137,64 @@ export default function HomeScreen({ navigation }) {
           style={styles.profileIcon}
         />
       </TouchableOpacity>
+
+      {/* <View style = {styles.mainCont}> */}
       <SafeAreaView style={styles.LogoTextContainer}>
         <Logo />
         {/* <Text style={styles.Text}>ניצול מזון : 12,000 ק''ג</Text> */}
 
 
       </SafeAreaView>
-      <View style={styles.buttonContainer}>
+      <ScrollView style={styles.buttonContainer2}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.buttonContainer}>
 
-        {/* all the button  */}
-        <TouchableOpacity
-          onPress={() => navigation.navigate("ManageGoods")}
-          style={styles.appButtonContainer}
-        >
-          <Text style={styles.appButtonText}>ניהול סחורות</Text>
-        </TouchableOpacity>
+          {/* all the button  */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate("ManageGoods")}
+            style={styles.appButtonContainer}
+          >
+            <Text style={styles.appButtonText}>ניהול סחורות</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => navigation.navigate("SeeStatistics")}
-          style={styles.appButtonContainer}
-        >
-          <Text style={styles.appButtonText}>צפו בסטטיסטיקה</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("SeeStatistics")}
+            style={styles.appButtonContainer}
+          >
+            <Text style={styles.appButtonText}>צפו בסטטיסטיקה</Text>
+          </TouchableOpacity>
 
 
-        {isAdmin && <TouchableOpacity
-          onPress={() => navigation.navigate("ManageItems")}
-          style={styles.appButtonContainer}
-        >
-          <Text style={styles.appButtonText}>ניהול פריטים</Text>
-        </TouchableOpacity>}
+          {isAdmin && <TouchableOpacity
+            onPress={() => navigation.navigate("ManageItems")}
+            style={styles.appButtonContainer}
+          >
+            <Text style={styles.appButtonText}>ניהול פריטים</Text>
+          </TouchableOpacity>}
 
-        {isAdmin && <TouchableOpacity
-          onPress={() => navigation.navigate("ManageVolunteers")}
-          style={styles.appButtonContainer}
-        >
-          <Text style={styles.appButtonText}>ניהול מתנדבים</Text>
-        </TouchableOpacity>}
+          {isAdmin && <TouchableOpacity
+            onPress={() => navigation.navigate("ManageVolunteers")}
+            style={styles.appButtonContainer}
+          >
+            <Text style={styles.appButtonText}>ניהול מתנדבים</Text>
+          </TouchableOpacity>}
 
-        {isAdmin && <TouchableOpacity
-          onPress={() => navigation.navigate("ManageDropArea")}
-          style={styles.appButtonContainer}
-        >
-          <Text style={styles.appButtonText}>ניהול נקודות פיזור</Text>
-        </TouchableOpacity>}
+          {isAdmin && <TouchableOpacity
+            onPress={() => navigation.navigate("ManageDropArea")}
+            style={styles.appButtonContainer}
+          >
+            <Text style={styles.appButtonText}>ניהול נקודות פיזור</Text>
+          </TouchableOpacity>}
 
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Feedback")}
-          style={styles.appButtonContainer}
-        >
-          <Text style={styles.appButtonText}>משובים</Text>
-        </TouchableOpacity>
-
-      </View>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Feedback")}
+            style={styles.appButtonContainer}
+          >
+            <Text style={styles.appButtonText}>משובים</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+      {/* </View> */}
     </Background>
   );
 }
@@ -258,8 +264,13 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "space-evenly",
+    marginTop: 15,
+    //  justifyContent: "space-between",
     // padding: 16,
+    width: "100%",
+    borderRadius: 100,
+  },
+  buttonContainer2: {
     width: "100%",
     borderRadius: 100,
   },
@@ -270,7 +281,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
-
+    margin: 20,
     width: "90%"
   },
   appButtonText: {
