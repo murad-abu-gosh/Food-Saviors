@@ -331,6 +331,7 @@ const styles = StyleSheet.create({
 
     marginTop: 10,
     marginBottom: 10,
+    padding: 5,
     width: "100%",
   },
 
@@ -353,7 +354,7 @@ const styles = StyleSheet.create({
 
     fontSize: 20,
     fontWeight: "bold",
-    textAlign: "left"
+    textAlign: "center"
   },
 
   searchAndListContainer: {
