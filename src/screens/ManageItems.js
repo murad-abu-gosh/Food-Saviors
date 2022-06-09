@@ -30,6 +30,7 @@ import {
   Platform,
   View,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import * as paper from "react-native-paper";
 import { Colors } from "../config";
@@ -38,6 +39,27 @@ import OurActivityIndicator from "../components/OurActivityIndicator";
 
 
 export default function ManageItems({ navigation }) {
+
+
+  const wait = (timeout) => {
+    return new Promise((resolve) => setTimeout(resolve, timeout));
+  };
+
+  const [refreshing, setRefreshing] = React.useState(false);
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    wait().then(() => {
+      fetchItemsSorted().then((result) => {
+        CreateItemsCard(result);
+        setIsLoading(false);
+        setRefreshing(false);
+        setIsLoading(false);
+      });
+
+    });
+  }, []);
+
+
   const [modalVisible, setModalVisible] = useState(false);
   const [modalVisibleItem, setModalVisibleItem] = useState(false);
   const [modalindex, setModalindex] = useState(null);
@@ -279,11 +301,9 @@ export default function ManageItems({ navigation }) {
             </TouchableOpacity>
 
             <ScrollView
+             
               contentContainerStyle={{
                 flexGrow: 1,
-
-                // margin: 40,
-                // padding: 10,
 
                 alignItems: "center",
                 alignContent: "center",
@@ -504,6 +524,9 @@ export default function ManageItems({ navigation }) {
 
         {/* <View style={styles.ScreenContainer}>  */}
         <ScrollView
+         refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
           contentContainerStyle={{
             flexGrow: 1,
 
