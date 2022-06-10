@@ -39,19 +39,23 @@ export default function ManageVolunteers({ navigation, route }) {
 
     let searcheableFileds = ["name", "personalID", "phoneNumber", "email"];
     let newVolunteersList = [];
+    let isSuitable = false;
 
     fullVolunteersInfo.forEach((currVolunterInfoObj) => {
+
+      isSuitable = false;
 
       for (let i = 0; i < searcheableFileds.length; i++) {
 
         if ((currVolunterInfoObj[searcheableFileds[i]]).toLowerCase().includes(searchString)) {
 
           newVolunteersList.push(currVolunterInfoObj);
+          isSuitable = true;
           break;
         }
       }
 
-      if(getUserRankString(currVolunterInfoObj.rank).toLowerCase().includes(searchString)){
+      if(!isSuitable && getUserRankString(currVolunterInfoObj.rank).toLowerCase().includes(searchString)){
         newVolunteersList.push(currVolunterInfoObj);
       }
 
