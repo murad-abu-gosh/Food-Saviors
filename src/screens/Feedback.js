@@ -36,20 +36,23 @@ export default function Feedback({ navigation, route }) {
 
     let searcheableFileds = ["title", "content"];
     let newFeedbacksList = [];
+    let isSuitable = false;
 
     fullFeedbacksInfo.forEach((currFeedbackInfoObj) => {
+      isSuitable = false;
 
       for (let i = 0; i < searcheableFileds.length; i++) {
 
         if ((currFeedbackInfoObj[searcheableFileds[i]]).toLowerCase().includes(searchString)) {
 
           newFeedbacksList.push(currFeedbackInfoObj);
+          isSuitable = true;
           break;
         }
       }
 
 
-      if (IDsNamesMap.get(currFeedbackInfoObj.userID).toLowerCase().includes(searchString) || getDateStr(currFeedbackInfoObj["date"]).includes(searchString)) {
+      if (!isSuitable && (IDsNamesMap.get(currFeedbackInfoObj.userID).toLowerCase().includes(searchString) || getDateStr(currFeedbackInfoObj["date"]).includes(searchString))) {
         newFeedbacksList.push(currFeedbackInfoObj);
       }
 
