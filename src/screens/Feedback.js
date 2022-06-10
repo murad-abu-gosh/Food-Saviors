@@ -47,7 +47,7 @@ export default function Feedback({ navigation, route }) {
 
           newFeedbacksList.push(currFeedbackInfoObj);
           isSuitable = true;
-          break;
+          break; 
         }
       }
 
