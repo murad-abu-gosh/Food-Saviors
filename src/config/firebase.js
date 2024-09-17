@@ -4,7 +4,7 @@ import {initializeApp} from "firebase/app"
 import { getStorage } from "firebase/storage";
 // add firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyA3cPBhCO6Kuprrb-KTVuLroxMGF6AbiMU",
+  apiKey: "",
   authDomain: "fir-expo-demo.firebaseapp.com",
   projectId: "fir-expo-demo",
   storageBucket: "fir-expo-demo.appspot.com",
